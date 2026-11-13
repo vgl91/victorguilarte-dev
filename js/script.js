@@ -11,60 +11,75 @@
 	const $ = (sel, root = document) => root.querySelector(sel);
 	const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+	const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
+
 	/* ------------------------------------------------------------------------
 	   1. Language switching
 	   ------------------------------------------------------------------------ */
 	const LANG_DEFAULT = 'en';
 	const LANG_STORAGE = 'vg.lang';
-	const TEXTS_SELECTOR = '[data-text]';
 
-	let cachedTexts = null;
+	/* Shared state: the dictionary of the active language plus the active id. */
+	const state = { lang: LANG_DEFAULT, texts: null };
 
 	async function loadTexts(lang) {
-		if (cachedTexts && cachedTexts.__lang === lang) return cachedTexts;
-		const res = await fetch(`languages/${lang}.json`, { cache: 'no-cache' });
+		if (state.texts && state.texts.__lang === lang) return state.texts;
+		/* Normal caching: the browser revalidates with ETag instead of
+		   re-downloading the file on every visit. */
+		const res = await fetch(`languages/${lang}.json`);
 		if (!res.ok) throw new Error(`HTTP ${res.status} loading ${lang}.json`);
 		const data = await res.json();
-		cachedTexts = { ...data, __lang: lang };
-		return cachedTexts;
+		state.texts = Object.assign({}, data, { __lang: lang });
+		return state.texts;
+	}
+
+	/* Look up a translatable string, with a built-in English fallback. */
+	function t(key, fallback) {
+		const value = state.texts ? state.texts[key] : undefined;
+		return typeof value === 'string' && value.length ? value : (fallback || '');
 	}
 
 	function applyTexts(texts) {
-		$$(TEXTS_SELECTOR).forEach((el) => {
-			const key = el.dataset.text;
-			if (!texts[key]) return;
+		$$('[data-text]').forEach((el) => {
+			const value = texts[el.dataset.text];
+			if (typeof value === 'string' && value.length) el.textContent = value;
+		});
+	}
 
-			// For elements with HTML children we still want a safe text update
-			// but preserve the <span data-text> child if any (used inside other
-			// data-text parents). We just set textContent for leaf nodes.
-			if (el.children.length === 0) {
-				el.textContent = texts[key];
-			} else {
-				// Find a single text-bearing child, fallback to textContent
-				el.textContent = texts[key];
-			}
+	/* Attributes that carry a translatable string (aria-label, ...). */
+	function applyAriaLabels(texts) {
+		$$('[data-aria-label]').forEach((el) => {
+			const value = texts[el.dataset.ariaLabel];
+			if (typeof value === 'string' && value.length) el.setAttribute('aria-label', value);
 		});
 	}
 
 	async function setLanguage(lang) {
 		try {
 			const texts = await loadTexts(lang);
+			state.lang = lang;
 			applyTexts(texts);
+			applyAriaLabels(texts);
 			document.documentElement.lang = lang;
 			$$('.flags-item').forEach((item) => {
 				const isActive = item.dataset.lang === lang;
 				item.classList.toggle('active', isActive);
 				item.setAttribute('aria-pressed', String(isActive));
 			});
-			localStorage.setItem(LANG_STORAGE, lang);
+			updateThemeLabel();
+			try {
+				localStorage.setItem(LANG_STORAGE, lang);
+			} catch (err) { /* private mode */ }
 		} catch (err) {
 			console.error('Language load failed:', err);
 		}
 	}
 
 	function initLanguage() {
-		// Default: always English. Persisted choice wins.
-		const saved = localStorage.getItem(LANG_STORAGE) || LANG_DEFAULT;
+		let saved = LANG_DEFAULT;
+		try {
+			saved = localStorage.getItem(LANG_STORAGE) || LANG_DEFAULT;
+		} catch (err) { /* private mode */ }
 		setLanguage(saved);
 
 		$('#flags')?.addEventListener('click', (e) => {
@@ -82,16 +97,33 @@
 
 	function setTheme(theme) {
 		document.documentElement.setAttribute('data-theme', theme);
-		const icon = $('.theme-toggle i');
-		if (icon) {
-			icon.className = theme === 'light' ? 'bx bx-moon' : 'bx bx-sun';
-		}
-		localStorage.setItem(THEME_STORAGE, theme);
+		const meta = $('#theme-color');
+		if (meta) meta.setAttribute('content', theme === 'light' ? '#fafafa' : '#0a0a0f');
+		updateThemeLabel();
+		try {
+			localStorage.setItem(THEME_STORAGE, theme);
+		} catch (err) { /* private mode */ }
+	}
+
+	/* The button advertises the state it switches TO, and exposes the current
+	   state through aria-pressed. */
+	function updateThemeLabel() {
+		const theme = document.documentElement.getAttribute('data-theme') || THEME_DEFAULT;
+		const btn = $('#theme-toggle');
+		const icon = $('#theme-toggle-icon');
+		if (icon) icon.setAttribute('href', theme === 'light' ? '#i-bx-moon' : '#i-bx-sun');
+		if (!btn) return;
+		const isLight = theme === 'light';
+		btn.setAttribute('aria-pressed', String(isLight));
+		const label = isLight
+			? t('theme_toggle_dark', 'Switch to dark theme')
+			: t('theme_toggle_light', 'Switch to light theme');
+		btn.setAttribute('aria-label', label);
 	}
 
 	function initTheme() {
-		const saved = localStorage.getItem(THEME_STORAGE) || THEME_DEFAULT;
-		setTheme(saved);
+		/* The inline head script already resolved the theme before first paint. */
+		updateThemeLabel();
 		$('#theme-toggle')?.addEventListener('click', () => {
 			const current = document.documentElement.getAttribute('data-theme') || THEME_DEFAULT;
 			setTheme(current === 'dark' ? 'light' : 'dark');
@@ -105,27 +137,36 @@
 		const header = $('#site-header');
 		const navLinks = $$('.navbar a[href^="#"]');
 		const sections = navLinks
-			.map((link) => {
-				const id = link.getAttribute('href').slice(1);
-				return document.getElementById(id);
-			})
+			.map((link) => document.getElementById(link.getAttribute('href').slice(1)))
 			.filter(Boolean);
 
 		const setActive = (id) => {
 			navLinks.forEach((link) => {
-				const linkId = link.getAttribute('href').slice(1);
-				link.classList.toggle('is-active', linkId === id);
+				const isActive = link.getAttribute('href').slice(1) === id;
+				link.classList.toggle('is-active', isActive);
+				if (isActive) link.setAttribute('aria-current', 'location');
+				else link.removeAttribute('aria-current');
 			});
 		};
+		setActive('home');
 
-		// Scroll state
 		const onScroll = () => {
 			header?.classList.toggle('is-scrolled', window.scrollY > 8);
+			$('.scroll-top')?.classList.toggle('is-visible', window.scrollY > 600);
 		};
-		document.addEventListener('scroll', onScroll, { passive: true });
+
+		/* One rAF-throttled listener for the whole page. */
+		let ticking = false;
+		document.addEventListener('scroll', () => {
+			if (ticking) return;
+			ticking = true;
+			requestAnimationFrame(() => {
+				onScroll();
+				ticking = false;
+			});
+		}, { passive: true });
 		onScroll();
 
-		// Active section via IntersectionObserver
 		if ('IntersectionObserver' in window) {
 			const observer = new IntersectionObserver(
 				(entries) => {
@@ -140,38 +181,76 @@
 	}
 
 	/* ------------------------------------------------------------------------
-	   4. Mobile menu
+	   4. Mobile menu (off-canvas)
 	   ------------------------------------------------------------------------ */
 	function initMobileMenu() {
 		const toggle = $('#menu-icon');
-		if (!toggle) return;
+		const nav = $('.primary-nav');
+		if (!toggle || !nav) return;
+
+		const mq = window.matchMedia('(max-width: 960px)');
+
+		const setIcon = (open) => {
+			const icon = $('#menu-toggle-icon');
+			if (icon) icon.setAttribute('href', open ? '#i-bx-x' : '#i-bx-menu');
+		};
+
+		/* While the panel is closed on small screens it must be out of the tab
+		   order: `visibility: hidden` (CSS) plus `inert` (script). */
+		const sync = () => {
+			const open = document.body.classList.contains('menu-open');
+			if (mq.matches) {
+				nav.toggleAttribute('inert', !open);
+				if (open) nav.removeAttribute('aria-hidden');
+				else nav.setAttribute('aria-hidden', 'true');
+			} else {
+				nav.removeAttribute('inert');
+				nav.removeAttribute('aria-hidden');
+			}
+		};
+
+		const close = (restoreFocus) => {
+			document.body.classList.remove('menu-open');
+			toggle.setAttribute('aria-expanded', 'false');
+			setIcon(false);
+			sync();
+			if (restoreFocus) toggle.focus();
+		};
+
 		toggle.addEventListener('click', () => {
-			const isOpen = document.body.classList.toggle('menu-open');
-			toggle.setAttribute('aria-expanded', String(isOpen));
-			const icon = toggle.querySelector('i');
-			if (icon) icon.className = isOpen ? 'bx bx-x' : 'bx bx-menu';
+			const open = document.body.classList.toggle('menu-open');
+			toggle.setAttribute('aria-expanded', String(open));
+			setIcon(open);
+			sync();
+			if (open) nav.querySelector('a')?.focus();
 		});
 
-		// Close menu when clicking any nav link
-		$$('.navbar a').forEach((link) => {
-			link.addEventListener('click', () => {
-				document.body.classList.remove('menu-open');
-				toggle.setAttribute('aria-expanded', 'false');
-				const icon = toggle.querySelector('i');
-				if (icon) icon.className = 'bx bx-menu';
-			});
+		$$('.navbar a').forEach((link) => link.addEventListener('click', () => close(false)));
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && document.body.classList.contains('menu-open')) close(true);
 		});
+
+		mq.addEventListener('change', () => {
+			if (!mq.matches) close(false);
+			sync();
+		});
+		sync();
 	}
 
 	/* ------------------------------------------------------------------------
-	   5. Reveal on scroll (replaces ScrollReveal)
+	   5. Reveal on scroll (IntersectionObserver)
 	   ------------------------------------------------------------------------ */
+	function revealAll() {
+		$$('.reveal').forEach((el) => el.classList.add('is-visible'));
+	}
+
 	function initReveal() {
 		const items = $$('.reveal');
 		if (!items.length) return;
 
 		if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-			items.forEach((el) => el.classList.add('is-visible'));
+			revealAll();
 			return;
 		}
 
@@ -190,18 +269,7 @@
 	}
 
 	/* ------------------------------------------------------------------------
-	   6. Scroll to top
-	   ------------------------------------------------------------------------ */
-	function initScrollTop() {
-		const btn = $('.scroll-top');
-		if (!btn) return;
-		const onScroll = () => btn.classList.toggle('is-visible', window.scrollY > 600);
-		document.addEventListener('scroll', onScroll, { passive: true });
-		onScroll();
-	}
-
-	/* ------------------------------------------------------------------------
-	   7. CV Modal
+	   6. CV Modal (focus trapped, PDF loaded on demand)
 	   ------------------------------------------------------------------------ */
 	function initCvModal() {
 		const modal = $('#cv-modal');
@@ -209,22 +277,27 @@
 
 		const openers = $$('[data-open-cv]');
 		const closeBtn = $('#cv-modal-close');
+		const frame = $('#cv-frame');
 		let lastOpener = null;
+
+		const focusables = () => $$(FOCUSABLE, modal).filter((el) => el.getClientRects().length > 0);
 
 		const open = (opener) => {
 			lastOpener = opener || null;
 			modal.hidden = false;
 			document.body.style.overflow = 'hidden';
+			/* The PDF is ~130 KB: only request it the first time it is needed. */
+			if (frame && !frame.getAttribute('src') && frame.dataset.src) {
+				frame.setAttribute('src', frame.dataset.src);
+			}
 			closeBtn?.focus();
 		};
+
 		const close = () => {
 			modal.hidden = true;
 			document.body.style.overflow = '';
-			if (lastOpener && typeof lastOpener.focus === 'function') {
-				lastOpener.focus();
-			} else {
-				openers[0]?.focus();
-			}
+			if (lastOpener && typeof lastOpener.focus === 'function') lastOpener.focus();
+			else openers[0]?.focus();
 		};
 
 		openers.forEach((btn) => btn.addEventListener('click', (e) => {
@@ -237,48 +310,70 @@
 		});
 
 		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape' && !modal.hidden) close();
+			if (modal.hidden) return;
+			if (e.key === 'Escape') {
+				close();
+				return;
+			}
+			if (e.key !== 'Tab') return;
+
+			/* Trap the focus inside the dialog. */
+			const items = focusables();
+			if (!items.length) return;
+			const first = items[0];
+			const last = items[items.length - 1];
+			const active = document.activeElement;
+
+			if (!modal.contains(active)) {
+				e.preventDefault();
+				first.focus();
+			} else if (e.shiftKey && active === first) {
+				e.preventDefault();
+				last.focus();
+			} else if (!e.shiftKey && active === last) {
+				e.preventDefault();
+				first.focus();
+			}
 		});
 	}
 
 	/* ------------------------------------------------------------------------
-	   8. Copy email
+	   7. Copy email
 	   ------------------------------------------------------------------------ */
 	function initCopyEmail() {
 		const btn = $('#copy-email');
 		if (!btn) return;
 		const email = 'vaglegra91@gmail.com';
-		const original = btn.innerHTML;
+		const label = btn.querySelector('span');
 
 		btn.addEventListener('click', async () => {
 			try {
 				await navigator.clipboard.writeText(email);
 			} catch {
-				// Fallback for older browsers
+				/* Fallback for older browsers */
 				const ta = document.createElement('textarea');
 				ta.value = email;
 				ta.style.position = 'fixed';
 				ta.style.opacity = '0';
 				document.body.appendChild(ta);
 				ta.select();
-				try { document.execCommand('copy'); } catch (_) {}
+				try { document.execCommand('copy'); } catch (err) { /* ignore */ }
 				document.body.removeChild(ta);
 			}
 			btn.classList.add('is-copied');
-			const label = btn.querySelector('span');
-			const originalLabel = label ? label.textContent : '';
-			if (label) label.textContent = '✓';
+			if (label) label.textContent = t('contact_email_copied', 'Copied!');
 			setTimeout(() => {
 				btn.classList.remove('is-copied');
-				btn.innerHTML = original;
-				// Re-apply translations to the restored label
-				setLanguage(localStorage.getItem(LANG_STORAGE) || LANG_DEFAULT);
+				if (label) {
+					const value = state.texts ? state.texts[label.dataset.text] : '';
+					label.textContent = typeof value === 'string' && value.length ? value : 'Copy';
+				}
 			}, 1800);
 		});
 	}
 
 	/* ------------------------------------------------------------------------
-	   9. Contact form (EmailJS)
+	   8. Contact form (EmailJS)
 	   ------------------------------------------------------------------------ */
 	const EMAILJS_PUBLIC_KEY = '2YPcm-rA0h-8vmvxg';
 	const EMAILJS_SERVICE = 'contact_service';
@@ -292,19 +387,29 @@
 		const btnLabel = submitBtn?.querySelector('.btn-label');
 		const feedback = $('#form-feedback');
 
-		// Live validation
+		const setInvalid = (field, invalid) => {
+			field.classList.toggle('is-invalid', invalid);
+			if (invalid) field.setAttribute('aria-invalid', 'true');
+			else field.removeAttribute('aria-invalid');
+		};
+
+		const isInvalidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+		/* Live validation, exposed to assistive tech through aria-invalid. */
 		$$('input, textarea', form).forEach((field) => {
 			field.addEventListener('blur', () => {
-				if (field.required && !field.value.trim()) {
-					field.classList.add('is-invalid');
-				} else if (field.type === 'email' && field.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
-					field.classList.add('is-invalid');
-				} else {
-					field.classList.remove('is-invalid');
-				}
+				if (field.required && !field.value.trim()) setInvalid(field, true);
+				else if (field.type === 'email' && field.value && !isInvalidEmail(field.value)) setInvalid(field, true);
+				else setInvalid(field, false);
 			});
-			field.addEventListener('input', () => field.classList.remove('is-invalid'));
+			field.addEventListener('input', () => setInvalid(field, false));
 		});
+
+		const say = (message, stateName) => {
+			if (!feedback) return;
+			feedback.textContent = message;
+			feedback.className = 'form-feedback' + (stateName ? ' ' + stateName : '');
+		};
 
 		form.addEventListener('submit', async (e) => {
 			e.preventDefault();
@@ -317,15 +422,15 @@
 				message: form.message.value.trim()
 			};
 
-			// Basic validation
+			/* Basic validation */
 			if (!data.from_name || !data.user_email || !data.message) {
-				feedback.textContent = '⚠ Please fill in name, email and message.';
-				feedback.className = 'form-feedback is-error';
+				say('⚠ ' + t('contact_form_invalid', 'Please fill in name, email and message.'), 'is-error');
+				form.name.focus();
 				return;
 			}
-			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.user_email)) {
-				feedback.textContent = '⚠ Please enter a valid email.';
-				feedback.className = 'form-feedback is-error';
+			if (!isInvalidEmail(data.user_email)) {
+				say('⚠ ' + t('contact_form_invalid_email', 'Please enter a valid email.'), 'is-error');
+				form.email.focus();
 				return;
 			}
 
@@ -333,21 +438,18 @@
 			if (submitBtn) {
 				submitBtn.disabled = true;
 				submitBtn.classList.add('is-loading');
-				if (btnLabel) btnLabel.textContent = '…';
+				if (btnLabel) btnLabel.textContent = t('contact_form_sending', 'Sending…');
 			}
-			feedback.textContent = '';
-			feedback.className = 'form-feedback';
+			say('', '');
 
 			try {
 				if (typeof emailjs === 'undefined') throw new Error('EmailJS not loaded');
 				await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, data);
-				feedback.textContent = '✓ Message sent. I will reply soon.';
-				feedback.className = 'form-feedback is-success';
+				say('✓ ' + t('contact_form_success', "Message sent. I'll get back to you soon."), 'is-success');
 				form.reset();
 			} catch (err) {
 				console.error('EmailJS error:', err);
-				feedback.textContent = '✕ Could not send. Email me directly at vaglegra91@gmail.com';
-				feedback.className = 'form-feedback is-error';
+				say('✕ ' + t('contact_form_error', "Couldn't send. Please email me directly."), 'is-error');
 			} finally {
 				if (submitBtn) {
 					submitBtn.disabled = false;
@@ -357,14 +459,14 @@
 			}
 		});
 
-		// Init EmailJS
+		/* Init EmailJS */
 		if (typeof emailjs !== 'undefined') {
 			emailjs.init(EMAILJS_PUBLIC_KEY);
 		}
 	}
 
 	/* ------------------------------------------------------------------------
-	   10. Year
+	   9. Year
 	   ------------------------------------------------------------------------ */
 	function setCurrentYear() {
 		const el = $('#current-year');
@@ -375,16 +477,21 @@
 	   Bootstrap
 	   ------------------------------------------------------------------------ */
 	function init() {
-		setCurrentYear();
-		initTheme();
-		initLanguage();
-		initHeader();
-		initMobileMenu();
-		initReveal();
-		initScrollTop();
-		initCvModal();
-		initCopyEmail();
-		initContactForm();
+		try {
+			setCurrentYear();
+			initTheme();
+			initLanguage();
+			initHeader();
+			initMobileMenu();
+			initReveal();
+			initCvModal();
+			initCopyEmail();
+			initContactForm();
+		} catch (err) {
+			/* Never leave the page blank because of a script error. */
+			console.error('Init failed:', err);
+			revealAll();
+		}
 	}
 
 	if (document.readyState === 'loading') {

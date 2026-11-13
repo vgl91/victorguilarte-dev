@@ -2,6 +2,15 @@
    Victor Guilarte — Portfolio
    Design system: Ember red accent · Inter + JetBrains Mono
    Light & dark themes via [data-theme]
+
+   Contrast notes (WCAG 2.2 AA):
+   - Text colours are split in three: --text-primary / --text-secondary / --text-muted.
+     --text-muted clears 4.5:1 on every surface in both themes (it used to fail).
+   - --accent is the colour used for TEXT and icons (needs 4.5:1 on the page).
+   - --accent-solid is the colour used for FILLED surfaces carrying white text
+     (needs 4.5:1 against white). It is a deeper red than --accent on purpose.
+   - --accent-on-tint is the accent colour for text sitting on a tinted accent
+     surface (chips, badges).
    ========================================================================= */
 
 /* ----------------------------------------------------------------------------
@@ -68,19 +77,31 @@
 	--border-strong: rgba(255, 255, 255, 0.14);
 	--text-primary: #f5f5f7;
 	--text-secondary: #a1a1aa;
-	--text-muted: #71717a;
+	--text-muted: #82828d;
 	--accent: #e94e4e;
 	--accent-hover: #ff6b6b;
+	--accent-solid: #c93a3a;
+	--accent-solid-hover: #b53232;
+	--accent-on-tint: #ff8a8a;
 	--accent-soft: rgba(233, 78, 78, 0.15);
 	--accent-glow: rgba(233, 78, 78, 0.35);
+	--danger: #f87171;
+	--success: #4ade80;
 	--gradient-hero: radial-gradient(circle at 20% 0%, rgba(233, 78, 78, 0.18), transparent 50%),
 		radial-gradient(circle at 80% 100%, rgba(120, 80, 220, 0.12), transparent 50%);
+	--gradient-accent: linear-gradient(120deg, var(--accent), #ff8a8a);
+	--gradient-ember: linear-gradient(135deg, #e94e4e 0%, #ff8a4a 100%);
+	--gradient-slate: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+	--gradient-violet: linear-gradient(135deg, #6b46c1 0%, #d53f8c 100%);
 	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
 	--shadow-md: 0 6px 16px rgba(0, 0, 0, 0.35);
 	--shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
 	--shadow-accent: 0 0 0 1px var(--accent-soft), 0 8px 30px var(--accent-glow);
 	--scrollbar-track: #0a0a0f;
 	--scrollbar-thumb: #2a2a35;
+	--overlay: rgba(0, 0, 0, 0.75);
+	--badge-bg: rgba(0, 0, 0, 0.62);
+	--glass-bg: rgba(22, 22, 34, 0.92);
 }
 
 /* Light theme */
@@ -94,19 +115,31 @@
 	--border-strong: rgba(0, 0, 0, 0.14);
 	--text-primary: #18181b;
 	--text-secondary: #52525b;
-	--text-muted: #a1a1aa;
-	--accent: #d63d3d;
-	--accent-hover: #e94e4e;
-	--accent-soft: rgba(233, 78, 78, 0.12);
-	--accent-glow: rgba(233, 78, 78, 0.25);
-	--gradient-hero: radial-gradient(circle at 20% 0%, rgba(233, 78, 78, 0.1), transparent 50%),
+	--text-muted: #6b6b73;
+	--accent: #c03030;
+	--accent-hover: #a52a2a;
+	--accent-solid: #c03030;
+	--accent-solid-hover: #a52a2a;
+	--accent-on-tint: #b02c2c;
+	--accent-soft: rgba(192, 48, 48, 0.12);
+	--accent-glow: rgba(192, 48, 48, 0.25);
+	--danger: #b91c1c;
+	--success: #15803d;
+	--gradient-hero: radial-gradient(circle at 20% 0%, rgba(192, 48, 48, 0.1), transparent 50%),
 		radial-gradient(circle at 80% 100%, rgba(120, 80, 220, 0.08), transparent 50%);
+	--gradient-accent: linear-gradient(120deg, var(--accent), #e05353);
+	--gradient-ember: linear-gradient(135deg, #e05353 0%, #ff8a4a 100%);
+	--gradient-slate: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+	--gradient-violet: linear-gradient(135deg, #6b46c1 0%, #d53f8c 100%);
 	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
 	--shadow-md: 0 6px 20px rgba(0, 0, 0, 0.06);
 	--shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.08);
 	--shadow-accent: 0 0 0 1px var(--accent-soft), 0 8px 30px var(--accent-glow);
 	--scrollbar-track: #fafafa;
 	--scrollbar-thumb: #d4d4d8;
+	--overlay: rgba(0, 0, 0, 0.55);
+	--badge-bg: rgba(0, 0, 0, 0.62);
+	--glass-bg: rgba(255, 255, 255, 0.94);
 }
 
 /* ----------------------------------------------------------------------------
@@ -176,7 +209,7 @@ ol {
 }
 
 ::selection {
-	background: var(--accent);
+	background: var(--accent-solid);
 	color: #fff;
 }
 
@@ -203,7 +236,7 @@ ol {
 	left: var(--space-4);
 	z-index: 9999;
 	padding: var(--space-3) var(--space-5);
-	background: var(--accent);
+	background: var(--accent-solid);
 	color: #fff;
 	border-radius: var(--radius-md);
 	font-weight: 600;
@@ -220,7 +253,89 @@ ol {
 }
 
 /* ----------------------------------------------------------------------------
-   3. Layout
+   3. Icons (inline SVG sprite — no icon font, no CDN request)
+   ---------------------------------------------------------------------------- */
+.icon-sprite {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+
+.icon {
+	width: 1em;
+	height: 1em;
+	fill: currentColor;
+	flex: none;
+	display: inline-block;
+	vertical-align: -0.14em;
+}
+
+.icon-lg {
+	width: 2rem;
+	height: 2rem;
+}
+
+.icon-xl {
+	width: 2.5rem;
+	height: 2.5rem;
+}
+
+.btn .icon {
+	width: 1.05rem;
+	height: 1.05rem;
+}
+
+.icon-btn .icon {
+	width: 1.4rem;
+	height: 1.4rem;
+}
+
+.copy-btn .icon {
+	width: 0.95rem;
+	height: 0.95rem;
+}
+
+.contact-item dt .icon {
+	width: 1rem;
+	height: 1rem;
+}
+
+.social-link .icon {
+	width: 1.3rem;
+	height: 1.3rem;
+}
+
+.cert-link .icon {
+	width: 1rem;
+	height: 1rem;
+}
+
+.scroll-top .icon {
+	width: 1.4rem;
+	height: 1.4rem;
+}
+
+/* Brand colours for the tech stack (lightened on dark so they stay legible) */
+.icon-devicon-dotnetcore { color: #512bd4; }
+.icon-devicon-csharp { color: #68217a; }
+.icon-devicon-dotnet { color: #1384c8; }
+.icon-devicon-angular { color: #c4473a; }
+.icon-devicon-blazor { color: #5c2d91; }
+.icon-devicon-javascript { color: #f0db4f; }
+.icon-devicon-sqlserver { color: #ee352c; }
+.icon-devicon-github { color: var(--text-primary); }
+
+[data-theme="dark"] .icon-devicon-dotnetcore { color: #8b5cf6; }
+[data-theme="dark"] .icon-devicon-csharp { color: #a05fd0; }
+[data-theme="dark"] .icon-devicon-dotnet { color: #38bdf8; }
+[data-theme="dark"] .icon-devicon-angular { color: #ef6a5a; }
+[data-theme="dark"] .icon-devicon-blazor { color: #8b5cd6; }
+[data-theme="dark"] .icon-devicon-javascript { color: #f7df6a; }
+[data-theme="dark"] .icon-devicon-sqlserver { color: #f2554c; }
+
+/* ----------------------------------------------------------------------------
+   4. Layout
    ---------------------------------------------------------------------------- */
 .container {
 	width: 100%;
@@ -287,7 +402,7 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   4. Header
+   5. Header
    ---------------------------------------------------------------------------- */
 .site-header {
 	position: fixed;
@@ -388,6 +503,11 @@ section {
 }
 
 .flags-item {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 40px;
+	min-height: 32px;
 	padding: 4px 8px;
 	border-radius: var(--radius-full);
 	opacity: 0.45;
@@ -429,16 +549,12 @@ section {
 	border-color: var(--border);
 }
 
-.icon-btn i {
-	font-size: 1.4rem;
-}
-
 .menu-toggle {
 	display: none;
 }
 
 /* ----------------------------------------------------------------------------
-   5. Hero (home)
+   6. Hero (home)
    ---------------------------------------------------------------------------- */
 .home-grid {
 	display: grid;
@@ -455,7 +571,7 @@ section {
 	padding: 6px var(--space-3);
 	margin-bottom: var(--space-6);
 	background: var(--accent-soft);
-	color: var(--accent);
+	color: var(--accent-on-tint);
 	border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
 	border-radius: var(--radius-full);
 	font-family: var(--font-mono);
@@ -468,7 +584,7 @@ section {
 	content: '';
 	width: 8px;
 	height: 8px;
-	background: var(--accent);
+	background: var(--accent-on-tint);
 	border-radius: 50%;
 	box-shadow: 0 0 0 4px var(--accent-soft);
 	animation: pulse 2s infinite;
@@ -496,17 +612,22 @@ section {
 	line-height: 1.05;
 	letter-spacing: -0.03em;
 	margin-bottom: var(--space-6);
+	text-wrap: balance;
 }
 
 .hero-title span {
 	display: inline;
 }
 
+/* Clone the gradient on every line fragment so a wrapped accent keeps a
+   consistent ramp instead of fading into the tail of the gradient. */
 .hero-accent {
-	background: linear-gradient(120deg, var(--accent), #ff8a8a);
+	background: var(--gradient-accent);
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
 }
 
 .hero-subtitle {
@@ -569,12 +690,10 @@ section {
 	flex-direction: column;
 	gap: 2px;
 	padding: var(--space-3) var(--space-4);
-	background: var(--surface);
+	background: var(--glass-bg);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-md);
 	box-shadow: var(--shadow-md);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
 }
 
 .stat-bubble:nth-child(1) {
@@ -626,7 +745,7 @@ section {
 	gap: var(--space-2);
 	padding: var(--space-3);
 	border-radius: var(--radius-md);
-	transition: all var(--t-base) var(--ease);
+	transition: background-color var(--t-base) var(--ease), transform var(--t-base) var(--ease);
 	cursor: default;
 }
 
@@ -635,19 +754,16 @@ section {
 	transform: translateY(-2px);
 }
 
-.tech-item i {
-	font-size: 2rem;
-}
-
 .tech-name {
 	font-family: var(--font-mono);
 	font-size: var(--fs-xs);
 	color: var(--text-muted);
 	font-weight: 500;
+	text-align: center;
 }
 
 /* ----------------------------------------------------------------------------
-   6. Buttons
+   7. Buttons
    ---------------------------------------------------------------------------- */
 .btn {
 	display: inline-flex;
@@ -666,15 +782,15 @@ section {
 }
 
 .btn-primary {
-	background: var(--accent);
+	background: var(--accent-solid);
 	color: #fff;
-	border-color: var(--accent);
+	border-color: var(--accent-solid);
 }
 
 .btn-primary:hover,
 .btn-primary:focus-visible {
-	background: var(--accent-hover);
-	border-color: var(--accent-hover);
+	background: var(--accent-solid-hover);
+	border-color: var(--accent-solid-hover);
 	transform: translateY(-1px);
 	box-shadow: 0 8px 20px var(--accent-glow);
 }
@@ -704,13 +820,15 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   7. About
+   8. About
    ---------------------------------------------------------------------------- */
 .about-grid {
 	display: grid;
 	grid-template-columns: 1fr;
-	max-width: 880px;
-	margin-inline: auto;
+}
+
+.about-text {
+	max-width: 70ch;
 }
 
 .about-text h2 {
@@ -720,6 +838,7 @@ section {
 	letter-spacing: -0.025em;
 	margin-bottom: var(--space-6);
 	max-width: 22ch;
+	text-wrap: balance;
 }
 
 .about-text p {
@@ -761,12 +880,11 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   8. Experience (timeline)
+   9. Experience (timeline)
    ---------------------------------------------------------------------------- */
 .timeline {
 	position: relative;
 	padding-left: var(--space-8);
-	max-width: 900px;
 }
 
 .timeline::before {
@@ -786,7 +904,7 @@ section {
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-sm);
-	transition: all var(--t-base) var(--ease);
+	transition: border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
 }
 
 .timeline-item:hover {
@@ -862,6 +980,7 @@ section {
 	position: relative;
 	color: var(--text-secondary);
 	line-height: 1.65;
+	max-width: 80ch;
 }
 
 .timeline-list li::before {
@@ -879,6 +998,20 @@ section {
 	gap: var(--space-2);
 }
 
+/* The card spans the full grid, so the responsibilities fill it in two
+   readable columns on wide screens (column-major: 1-3 then 4-6). */
+@media (min-width: 1100px) {
+	.timeline-list {
+		display: grid;
+		grid-template-rows: repeat(3, auto);
+		grid-auto-flow: column;
+		gap: var(--space-5) var(--space-10);
+	}
+	.timeline-list li {
+		max-width: none;
+	}
+}
+
 .tag {
 	display: inline-flex;
 	align-items: center;
@@ -892,7 +1025,7 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   9. Skills
+   10. Skills
    ---------------------------------------------------------------------------- */
 .skills-grid {
 	display: grid;
@@ -905,7 +1038,7 @@ section {
 	background: var(--surface);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
-	transition: all var(--t-base) var(--ease);
+	transition: border-color var(--t-base) var(--ease), transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
 }
 
 .skill-category:hover {
@@ -952,7 +1085,7 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   10. Portfolio
+   11. Portfolio
    ---------------------------------------------------------------------------- */
 .portfolio-grid {
 	display: grid;
@@ -967,7 +1100,7 @@ section {
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
 	overflow: hidden;
-	transition: all var(--t-base) var(--ease);
+	transition: transform var(--t-base) var(--ease), border-color var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
 }
 
 .project-card:hover {
@@ -986,13 +1119,13 @@ section {
 }
 
 .project-thumb[data-gradient="ember"] {
-	background: linear-gradient(135deg, #e94e4e 0%, #ff8a4a 100%);
+	background: var(--gradient-ember);
 }
 .project-thumb[data-gradient="slate"] {
-	background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+	background: var(--gradient-slate);
 }
 .project-thumb[data-gradient="violet"] {
-	background: linear-gradient(135deg, #6b46c1 0%, #d53f8c 100%);
+	background: var(--gradient-violet);
 }
 
 .project-status {
@@ -1004,9 +1137,7 @@ section {
 	font-size: var(--fs-xs);
 	font-weight: 500;
 	color: #fff;
-	background: rgba(0, 0, 0, 0.4);
-	backdrop-filter: blur(8px);
-	-webkit-backdrop-filter: blur(8px);
+	background: var(--badge-bg);
 	border-radius: var(--radius-full);
 	letter-spacing: 0.02em;
 }
@@ -1018,11 +1149,8 @@ section {
 	width: 80px;
 	height: 80px;
 	border-radius: 50%;
-	background: rgba(255, 255, 255, 0.12);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
+	background: rgba(255, 255, 255, 0.18);
 	color: #fff;
-	font-size: 2.5rem;
 	transition: transform var(--t-base) var(--ease);
 }
 
@@ -1100,7 +1228,7 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   11. Certifications
+   12. Certifications
    ---------------------------------------------------------------------------- */
 .cert-grid {
 	display: grid;
@@ -1116,7 +1244,7 @@ section {
 	background: var(--surface);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-md);
-	transition: all var(--t-base) var(--ease);
+	transition: border-color var(--t-base) var(--ease), transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
 }
 
 .cert-card:hover {
@@ -1131,7 +1259,7 @@ section {
 	padding: 2px var(--space-2);
 	font-family: var(--font-mono);
 	font-size: var(--fs-xs);
-	color: var(--accent);
+	color: var(--accent-on-tint);
 	background: var(--accent-soft);
 	border-radius: var(--radius-sm);
 	letter-spacing: 0.05em;
@@ -1155,18 +1283,21 @@ section {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-1);
+	min-height: 32px;
+	padding: var(--space-1) 0;
 	font-size: var(--fs-sm);
 	font-weight: 500;
 	color: var(--accent);
-	transition: gap var(--t-fast) var(--ease);
+	transition: gap var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
 
 .cert-link:hover {
 	gap: var(--space-2);
+	color: var(--accent-hover);
 }
 
 /* ----------------------------------------------------------------------------
-   12. Contact
+   13. Contact
    ---------------------------------------------------------------------------- */
 .contact-grid {
 	display: grid;
@@ -1181,6 +1312,7 @@ section {
 	line-height: 1.1;
 	letter-spacing: -0.025em;
 	margin-bottom: var(--space-4);
+	text-wrap: balance;
 }
 
 .contact-subtitle {
@@ -1220,8 +1352,7 @@ section {
 	letter-spacing: 0.1em;
 }
 
-.contact-item dt i {
-	font-size: 1rem;
+.contact-item dt .icon {
 	color: var(--accent);
 }
 
@@ -1251,7 +1382,8 @@ section {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-1);
-	padding: 4px var(--space-2);
+	min-height: 32px;
+	padding: var(--space-1) var(--space-2);
 	font-family: var(--font-mono);
 	font-size: var(--fs-xs);
 	color: var(--text-secondary);
@@ -1268,8 +1400,8 @@ section {
 
 .copy-btn.is-copied {
 	color: #fff;
-	background: var(--accent);
-	border-color: var(--accent);
+	background: var(--accent-solid);
+	border-color: var(--accent-solid);
 }
 
 .contact-socials {
@@ -1306,10 +1438,6 @@ section {
 	transform: translateY(-2px);
 }
 
-.social-link i {
-	font-size: 1.3rem;
-}
-
 /* Form */
 .contact-form {
 	display: flex;
@@ -1334,7 +1462,7 @@ section {
 	background: var(--bg-soft);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-md);
-	transition: all var(--t-fast) var(--ease);
+	transition: border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 	resize: vertical;
 }
 
@@ -1385,7 +1513,12 @@ section {
 
 .field input.is-invalid,
 .field textarea.is-invalid {
-	border-color: #ef4444;
+	border-color: var(--danger);
+}
+
+.field input.is-invalid:focus,
+.field textarea.is-invalid:focus {
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 20%, transparent);
 }
 
 .form-feedback {
@@ -1395,15 +1528,15 @@ section {
 }
 
 .form-feedback.is-success {
-	color: #22c55e;
+	color: var(--success);
 }
 
 .form-feedback.is-error {
-	color: #ef4444;
+	color: var(--danger);
 }
 
 /* ----------------------------------------------------------------------------
-   13. Footer
+   14. Footer
    ---------------------------------------------------------------------------- */
 .site-footer {
 	padding-block: var(--space-8);
@@ -1440,6 +1573,7 @@ section {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-2);
+	min-height: 40px;
 	padding: var(--space-2) var(--space-4);
 	font-size: var(--fs-sm);
 	font-weight: 500;
@@ -1457,7 +1591,7 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   14. Scroll to top
+   15. Scroll to top
    ---------------------------------------------------------------------------- */
 .scroll-top {
 	position: fixed;
@@ -1469,7 +1603,7 @@ section {
 	justify-content: center;
 	width: 44px;
 	height: 44px;
-	background: var(--accent);
+	background: var(--accent-solid);
 	color: #fff;
 	border-radius: var(--radius-full);
 	box-shadow: var(--shadow-md);
@@ -1486,16 +1620,12 @@ section {
 }
 
 .scroll-top:hover {
-	background: var(--accent-hover);
+	background: var(--accent-solid-hover);
 	transform: translateY(-2px);
 }
 
-.scroll-top i {
-	font-size: 1.4rem;
-}
-
 /* ----------------------------------------------------------------------------
-   15. CV Modal
+   16. CV Modal
    ---------------------------------------------------------------------------- */
 .cv-modal {
 	position: fixed;
@@ -1511,9 +1641,7 @@ section {
 .cv-modal-overlay {
 	position: absolute;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.75);
-	backdrop-filter: blur(6px);
-	-webkit-backdrop-filter: blur(6px);
+	background: var(--overlay);
 	cursor: pointer;
 }
 
@@ -1576,15 +1704,21 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   16. Reveal animations (IntersectionObserver)
+   17. Reveal animations (IntersectionObserver)
+   Only applied when JS is available, so the page stays readable without it.
    ---------------------------------------------------------------------------- */
 .reveal {
-	opacity: 0;
-	transform: translateY(20px);
+	opacity: 1;
+	transform: none;
 	transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
 }
 
-.reveal.is-visible {
+.js .reveal {
+	opacity: 0;
+	transform: translateY(20px);
+}
+
+.js .reveal.is-visible {
 	opacity: 1;
 	transform: translateY(0);
 }
@@ -1598,7 +1732,7 @@ section {
 		transition-duration: 0.01ms !important;
 		scroll-behavior: auto !important;
 	}
-	.reveal {
+	.js .reveal {
 		opacity: 1;
 		transform: none;
 	}
@@ -1609,14 +1743,14 @@ section {
 }
 
 /* ----------------------------------------------------------------------------
-   17. Mobile menu (open state)
+   18. Mobile menu (open state)
    ---------------------------------------------------------------------------- */
 body.menu-open {
 	overflow: hidden;
 }
 
 /* ----------------------------------------------------------------------------
-   18. Responsive
+   19. Responsive
    ---------------------------------------------------------------------------- */
 @media (max-width: 960px) {
 	.home-grid {
@@ -1627,7 +1761,7 @@ body.menu-open {
 
 	.home-portrait {
 		order: -1;
-		max-width: 280px;
+		max-width: clamp(180px, 40vw, 260px);
 		margin-inline: auto;
 	}
 
@@ -1656,7 +1790,7 @@ body.menu-open {
 	}
 
 	.timeline-item {
-		padding: var(--space-5) var(--space-5);
+		padding: var(--space-5);
 	}
 
 	.timeline-item::before {
@@ -1667,6 +1801,8 @@ body.menu-open {
 		display: inline-flex;
 	}
 
+	/* Off-canvas menu: hidden from pointer and from the tab order while closed
+	   (the `inert` attribute is toggled from JS as well). */
 	.primary-nav {
 		position: fixed;
 		inset: var(--header-height) 0 0 0;
@@ -1674,11 +1810,14 @@ body.menu-open {
 		border-top: 1px solid var(--border);
 		padding: var(--space-6);
 		transform: translateX(100%);
-		transition: transform var(--t-base) var(--ease);
+		visibility: hidden;
+		transition: transform var(--t-base) var(--ease), visibility 0s linear var(--t-base);
 	}
 
 	body.menu-open .primary-nav {
 		transform: translateX(0);
+		visibility: visible;
+		transition: transform var(--t-base) var(--ease), visibility 0s;
 	}
 
 	.navbar {
@@ -1710,7 +1849,7 @@ body.menu-open {
 	}
 
 	.hero-title {
-		font-size: clamp(2.25rem, 10vw, 3rem);
+		font-size: clamp(2.25rem, 9vw, 3rem);
 	}
 
 	.hero-cta {
@@ -1730,8 +1869,9 @@ body.menu-open {
 		padding: var(--space-2);
 	}
 
-	.tech-item i {
-		font-size: 1.6rem;
+	.tech-item .icon {
+		width: 1.6rem;
+		height: 1.6rem;
 	}
 
 	.scroll-top {

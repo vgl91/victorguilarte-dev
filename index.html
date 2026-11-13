@@ -4,8 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 	<meta name="color-scheme" content="dark light">
-	<meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
-	<meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
+	<meta name="theme-color" id="theme-color" content="#0a0a0f">
 
 	<title>Victor Guilarte — .NET Full-Stack Developer</title>
 
@@ -45,14 +44,25 @@
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-	<link rel="preconnect" href="https://unpkg.com" crossorigin>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
-	<link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css" media="print" onload="this.media='all'">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" media="print" onload="this.media='all'">
-
-	<link rel="preload" href="css/style.css" as="style">
 	<link rel="stylesheet" href="css/style.css">
+
+	<script>
+		/* Set the theme before first paint: saved choice wins, otherwise follow the OS.
+		   Also flags that JS is available so the scroll-reveal animations can opt in. */
+		(function () {
+			var d = document.documentElement;
+			d.classList.add('js');
+			var t = null;
+			try { t = localStorage.getItem('vg.theme'); } catch (e) { /* private mode */ }
+			if (t !== 'light' && t !== 'dark') {
+				t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+			}
+			d.setAttribute('data-theme', t);
+			var m = document.querySelector('meta[name="theme-color"]');
+			if (m) m.setAttribute('content', t === 'light' ? '#fafafa' : '#0a0a0f');
+		})();
+	</script>
 
 	<script type="application/ld+json">
 	{
@@ -91,12 +101,41 @@
 	</script>
 </head>
 <body>
+	<!-- Inline icon sprite: replaces the Boxicons + Devicon webfonts (~2 MB of CSS + fonts)
+	     with a few KB of vector data, and removes two render-blocking third-party requests. -->
+	<svg class="icon-sprite" aria-hidden="true" focusable="false" width="0" height="0">
+		<symbol id="i-bx-moon" viewBox="0 0 24 24"><path d="M20.742 13.045a8.088 8.088 0 0 1-2.077.271c-2.135 0-4.14-.83-5.646-2.336a8.025 8.025 0 0 1-2.064-7.723A1 1 0 0 0 9.73 2.034a10.014 10.014 0 0 0-4.489 2.582c-3.898 3.898-3.898 10.243 0 14.143a9.937 9.937 0 0 0 7.072 2.93 9.93 9.93 0 0 0 7.07-2.929 10.007 10.007 0 0 0 2.583-4.491 1.001 1.001 0 0 0-1.224-1.224zm-2.772 4.301a7.947 7.947 0 0 1-5.656 2.343 7.953 7.953 0 0 1-5.658-2.344c-3.118-3.119-3.118-8.195 0-11.314a7.923 7.923 0 0 1 2.06-1.483 10.027 10.027 0 0 0 2.89 7.848 9.972 9.972 0 0 0 7.848 2.891 8.036 8.036 0 0 1-1.484 2.059z"/></symbol>
+		<symbol id="i-bx-sun" viewBox="0 0 24 24"><path d="M6.993 12c0 2.761 2.246 5.007 5.007 5.007s5.007-2.246 5.007-5.007S14.761 6.993 12 6.993 6.993 9.239 6.993 12zM12 8.993c1.658 0 3.007 1.349 3.007 3.007S13.658 15.007 12 15.007 8.993 13.658 8.993 12 10.342 8.993 12 8.993zM10.998 19h2v3h-2zm0-17h2v3h-2zm-9 9h3v2h-3zm17 0h3v2h-3zM4.219 18.363l2.12-2.122 1.415 1.414-2.12 2.122zM16.24 6.344l2.122-2.122 1.414 1.414-2.122 2.122zM6.342 7.759 4.22 5.637l1.415-1.414 2.12 2.122zm13.434 10.605-1.414 1.414-2.122-2.122 1.414-1.414z"/></symbol>
+		<symbol id="i-bx-menu" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></symbol>
+		<symbol id="i-bx-x" viewBox="0 0 24 24"><path d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z"/></symbol>
+		<symbol id="i-bx-download" viewBox="0 0 24 24"><path d="m12 16 4-5h-3V4h-2v7H8z"/><path d="M20 18H4v-7H2v7c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2v-7h-2v7z"/></symbol>
+		<symbol id="i-bx-code-alt" viewBox="0 0 24 24"><path d="m7.375 16.781 1.25-1.562L4.601 12l4.024-3.219-1.25-1.562-5 4a1 1 0 0 0 0 1.562l5 4zm9.25-9.562-1.25 1.562L19.399 12l-4.024 3.219 1.25 1.562 5-4a1 1 0 0 0 0-1.562l-5-4zm-1.649-4.003-4 18-1.953-.434 4-18z"/></symbol>
+		<symbol id="i-bx-mobile-alt" viewBox="0 0 24 24"><path d="M16.75 2h-10c-1.103 0-2 .897-2 2v16c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm-10 18V4h10l.002 16H6.75z"/><circle cx="11.75" cy="18" r="1"/></symbol>
+		<symbol id="i-bx-layout" viewBox="0 0 24 24"><path d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zm0 2 .001 4H5V5h14zM5 11h8v8H5v-8zm10 8v-8h4.001l.001 8H15z"/></symbol>
+		<symbol id="i-bx-link-external" viewBox="0 0 24 24"><path d="m13 3 3.293 3.293-7 7 1.414 1.414 7-7L21 11V3z"/><path d="M19 19H5V5h7l-2-2H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2v-5l-2-2v7z"/></symbol>
+		<symbol id="i-bx-map" viewBox="0 0 24 24"><path d="M12 14c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm0-6c1.103 0 2 .897 2 2s-.897 2-2 2-2-.897-2-2 .897-2 2-2z"/><path d="M11.42 21.814a.998.998 0 0 0 1.16 0C12.884 21.599 20.029 16.44 20 10c0-4.411-3.589-8-8-8S4 5.589 4 9.995c-.029 6.445 7.116 11.604 7.42 11.819zM12 4c3.309 0 6 2.691 6 6.005.021 4.438-4.388 8.423-6 9.73-1.611-1.308-6.021-5.294-6-9.735 0-3.309 2.691-6 6-6z"/></symbol>
+		<symbol id="i-bx-envelope" viewBox="0 0 24 24"><path d="M20 4H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2zm0 2v.511l-8 6.223-8-6.222V6h16zM4 18V9.044l7.386 5.745a.994.994 0 0 0 1.228 0L20 9.044 20.002 18H4z"/></symbol>
+		<symbol id="i-bx-phone" viewBox="0 0 24 24"><path d="M17.707 12.293a.999.999 0 0 0-1.414 0l-1.594 1.594c-.739-.22-2.118-.72-2.992-1.594s-1.374-2.253-1.594-2.992l1.594-1.594a.999.999 0 0 0 0-1.414l-4-4a.999.999 0 0 0-1.414 0L3.581 5.005c-.38.38-.594.902-.586 1.435.023 1.424.4 6.37 4.298 10.268s8.844 4.274 10.269 4.298h.028c.528 0 1.027-.208 1.405-.586l2.712-2.712a.999.999 0 0 0 0-1.414l-4-4.001zm-.127 6.712c-1.248-.021-5.518-.356-8.873-3.712-3.366-3.366-3.692-7.651-3.712-8.874L7 4.414 9.586 7 8.293 8.293a1 1 0 0 0-.272.912c.024.115.611 2.842 2.271 4.502s4.387 2.247 4.502 2.271a.991.991 0 0 0 .912-.271L17 14.414 19.586 17l-2.006 2.005z"/></symbol>
+		<symbol id="i-bx-copy" viewBox="0 0 24 24"><path d="M20 2H10c-1.103 0-2 .897-2 2v4H4c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2v-4h4c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zM4 20V10h10l.002 10H4zm16-6h-4v-4c0-1.103-.897-2-2-2h-4V4h10v10z"/></symbol>
+		<symbol id="i-bx-file-blank" viewBox="0 0 24 24"><path d="M19.937 8.68c-.011-.032-.02-.063-.033-.094a.997.997 0 0 0-.196-.293l-6-6a.997.997 0 0 0-.293-.196c-.03-.014-.062-.022-.094-.033a.991.991 0 0 0-.259-.051C13.04 2.011 13.021 2 13 2H6c-1.103 0-2 .897-2 2v16c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2V9c0-.021-.011-.04-.013-.062a.99.99 0 0 0-.05-.258zM16.586 8H14V5.414L16.586 8zM6 20V4h6v5a1 1 0 0 0 1 1h5l.002 10H6z"/></symbol>
+		<symbol id="i-bx-up-arrow-alt" viewBox="0 0 24 24"><path d="M11 8.414V18h2V8.414l4.293 4.293 1.414-1.414L12 4.586l-6.707 6.707 1.414 1.414z"/></symbol>
+		<symbol id="i-bx-send" viewBox="0 0 24 24"><path d="m21.426 11.095-17-8A.999.999 0 0 0 3.03 4.242L4.969 12 3.03 19.758a.998.998 0 0 0 1.396 1.147l17-8a1 1 0 0 0 0-1.81zM5.481 18.197l.839-3.357L12 12 6.32 9.16l-.839-3.357L18.651 12l-13.17 6.197z"/></symbol>
+		<symbol id="i-devicon-dotnetcore" viewBox="0 0 128 128"><path d="M61.195 0h4.953c12.918.535 25.688 4.89 36.043 12.676 9.809 7.289 17.473 17.437 21.727 28.906 2.441 6.387 3.664 13.18 4.082 19.992v4.211c-.414 11.293-3.664 22.52-9.73 32.082-6.801 10.895-16.922 19.73-28.727 24.828A64.399 64.399 0 0165.082 128h-2.144c-11.735-.191-23.41-3.66-33.297-9.992-11.196-7.113-20.114-17.785-25.028-30.117C1.891 81.19.441 74.02 0 66.812v-4.957c.504-14.39 5.953-28.609 15.41-39.496C23.168 13.31 33.5 6.48 44.887 2.937 50.172 1.27 55.676.41 61.195 0M25.191 37.523c-.03 12.153-.011 24.305-.011 36.454 1.43.011 2.86.011 4.293.011-.075-10.433.101-20.863-.106-31.293.48.907.918 1.84 1.465 2.707C37.035 54.91 43.105 64.5 49.309 74c1.738-.023 3.476-.023 5.214.004-.003-12.16-.007-24.32.004-36.48a308.076 308.076 0 00-4.25-.012c.075 10.32-.136 20.64.125 30.949-6.507-10.352-13.101-20.645-19.695-30.945a370.85 370.85 0 00-5.516.007m38.844-.011c-.129 12.16-.004 24.32-.047 36.476 6.469-.015 12.938.024 19.41-.02a83.36 83.36 0 01.024-3.952c-5.012-.016-10.027.007-15.043-.02-.074-4.21-.004-8.426-.04-12.637 4.395-.078 8.79.012 13.18-.047-.011-1.277-.011-2.554-.019-3.832-4.387.141-8.773-.054-13.164.012.012-4.023.02-8.05.02-12.078 4.699 0 9.398-.02 14.093.012-.008-1.301 0-2.606.016-3.906-6.145-.016-12.29-.008-18.43-.008m22.602.054c.004 1.266.004 2.528.008 3.79 3.488-.04 6.972.109 10.46.035-.023 10.863.004 21.718-.011 32.574 1.46.043 2.93.035 4.39-.09-.12-5.992.118-11.988-.156-17.977.067-2.699-.07-5.394.117-8.09.106-2.14-.277-4.277-.035-6.417 3.516.047 7.035.015 10.55.015a59.774 59.774 0 01.075-3.832c-8.469-.105-16.937-.094-25.398-.008M13.55 69.094c-1.977.91-2.106 4.023-.149 5.027 1.72 1.18 4.305-.371 4.227-2.41.133-2.004-2.29-3.688-4.078-2.617m29.23 15.289c-4.277 3.469-4.226 11.195.5 14.25 2.668 1.695 6.102 1.344 8.922.215.012-.621.027-1.239.05-1.86-2.671 1.395-6.41 1.68-8.675-.61-2.965-3.237-2.297-9.269 1.613-11.476 2.211-1.164 4.907-.824 7.086.239-.007-.66-.004-1.32 0-1.98-3.097-1.099-6.922-1.04-9.496 1.222m17.207 2.71c-1.89.22-3.758 1.22-4.633 2.966-1.253 2.496-1.109 5.867.864 7.96 2.035 2.297 5.945 2.32 8.18.297 2.425-2.308 2.699-6.468.757-9.164-1.148-1.629-3.273-2.183-5.168-2.058m17.887 2.722c-1.66 2.883-1.332 7.25 1.598 9.211 2.183 1.22 4.933.832 7.074-.308-.004-.617.004-1.235.031-1.848-1.687 1.07-3.937 1.856-5.812.777-1.309-.722-1.704-2.257-1.914-3.625 2.875-.039 5.746-.082 8.625-.074-.075-1.828-.118-3.894-1.45-5.308-2.199-2.43-6.644-1.657-8.152 1.175m-8.414-2.336v12.008c.652 0 1.312 0 1.973.004.023-2.195-.04-4.394.023-6.594.016-1.27.527-2.558 1.484-3.414.801-.605 1.883-.27 2.801-.246-.012-.636-.02-1.27-.023-1.902-1.793-.398-3.336.652-4.242 2.117-.02-.633-.04-1.266-.051-1.894-.656-.024-1.313-.051-1.965-.079zm0 0"/><path d="M58.758 89.223c1.652-.805 4.023-.41 4.945 1.3 1.05 1.887 1.027 4.383-.137 6.211-1.52 2.286-5.527 1.786-6.523-.742-1.008-2.258-.617-5.484 1.715-6.77zm0 0M79.04 92.414c.046-1.574 1.144-3.137 2.726-3.48.976-.164 2.097.007 2.773.793.672.714.813 1.714.98 2.64-2.16.012-4.32-.031-6.48.047zm0 0"/></symbol>
+		<symbol id="i-devicon-csharp" viewBox="0 0 128 128"><path d="M117.5 33.5l.3-.2c-.6-1.1-1.5-2.1-2.4-2.6L67.1 2.9c-.8-.5-1.9-.7-3.1-.7-1.2 0-2.3.3-3.1.7l-48 27.9c-1.7 1-2.9 3.5-2.9 5.4v55.7c0 1.1.2 2.3.9 3.4l-.2.1c.5.8 1.2 1.5 1.9 1.9l48.2 27.9c.8.5 1.9.7 3.1.7 1.2 0 2.3-.3 3.1-.7l48-27.9c1.7-1 2.9-3.5 2.9-5.4V36.1c.1-.8 0-1.7-.4-2.6zm-53.5 70c-21.8 0-39.5-17.7-39.5-39.5S42.2 24.5 64 24.5c14.7 0 27.5 8.1 34.3 20l-13 7.5C81.1 44.5 73.1 39.5 64 39.5c-13.5 0-24.5 11-24.5 24.5s11 24.5 24.5 24.5c9.1 0 17.1-5 21.3-12.4l12.9 7.6c-6.8 11.8-19.6 19.8-34.2 19.8zM115 62h-3.2l-.9 4h4.1v5h-5l-1.2 6h-4.9l1.2-6h-3.8l-1.2 6h-4.8l1.2-6H94v-5h3.5l.9-4H94v-5h5.3l1.2-6h4.9l-1.2 6h3.8l1.2-6h4.8l-1.2 6h2.2v5zm-12.7 4h3.8l.9-4h-3.8z"/></symbol>
+		<symbol id="i-devicon-dotnet" viewBox="0 0 128 128"><path fill-rule="evenodd" clip-rule="evenodd" d="M82.108 78.432c.479-1.232 1.022-2.445 1.427-3.701 2.288-7.097 4.554-14.2 6.805-21.309.865-2.731 1.813-5.42 3.515-7.767 2.692-3.709 6.442-5.652 10.88-6.331a37.456 37.456 0 015.28-.406c5.267-.05 10.536-.015 15.804-.01.28 0 .56.029.957.052-.129.304-.199.525-.311.724-1.955 3.494-3.872 7.009-5.885 10.468-3.505 6.022-7.016 12.042-10.631 17.998-2.319 3.819-4.834 7.52-7.687 10.974-2.105 2.548-4.321 4.984-7.146 6.77-1.925 1.217-3.981 1.929-6.315 1.917-8.278-.045-16.556-.012-24.834-.024-2.461-.004-4.568-.941-6.356-2.603-2.563-2.381-4.093-5.412-5.345-8.608-2.284-5.835-3.563-11.951-5.031-18.014-.688-2.838-1.47-5.654-2.215-8.478-.048-.183-.142-.354-.25-.617l-.577.542c-3.228 3.207-6.071 6.741-8.615 10.498-.693 1.024-.926 2.374-1.313 3.591-1.424 4.47-2.722 8.983-4.264 13.411-1.477 4.242-4.125 7.616-8.264 9.61a18.565 18.565 0 01-7.689 1.855c-3.98.088-7.962.098-11.943.134-.952.009-.996-.069-.748-.99 1.707-6.338 3.87-12.514 6.58-18.492 2.794-6.167 6.085-12.048 10.231-17.419 2.823-3.657 5.941-7.031 9.843-9.582 1.979-1.293 4.083-2.315 6.477-2.584.394-.045.793-.073 1.189-.073 8.478-.004 16.956.082 25.433-.039 4.547-.065 7.839 1.855 10.304 5.515 1.533 2.276 2.63 4.761 3.553 7.328 1.861 5.178 3.018 10.547 4.325 15.878.748 3.051 1.581 6.081 2.379 9.12.06.228.157.446.238.668l.199-.006z"/></symbol>
+		<symbol id="i-devicon-angular" viewBox="0 0 128 128"><path d="m52.864 64h23.28l-12.375-25.877zm10.946-62.974-59.257 20.854 9.363 77.637 49.957 27.457 50.214-27.828 9.36-77.635zm-15.766 73.974-7.265 18.176-13.581 0.056 36.608-81.079s26.531 56.561 38.19 81.417l-13.074-0.287-8.042-18.58-17.173 0.082z"/></symbol>
+		<symbol id="i-devicon-blazor" viewBox="0 0 128 128"><path d="M127.352 43.199c-5.727 35.891-36.562 62.379-72.902 62.633-3.566.137-7.137-.082-10.656-.648-15.18-2.574-26.496-15.402-27.16-30.785.125-17.336 14.148-31.359 31.488-31.484S79.68 56.617 80.047 73.953c.129 5.254-2.145 9.871-6.824 10-5 0-7.344-3.57-7.344-8.379V62.215c.004-4.496-3.621-8.156-8.117-8.191H46.559c-8.977-.062-16.832 6.012-19.035 14.715s1.824 17.781 9.75 21.996a19.5 19.5 0 0 0 23.688-4.223l.391-.582.391.645c2.738 3.719 7.152 5.82 11.762 5.602A15.54 15.54 0 0 0 87.902 75.93c.039-3.48-.348-6.949-1.16-10.328a39.57 39.57 0 0 0-42.969-30.926C23.645 36.879 8.43 53.922 8.512 74.168c.262 21.543 17.512 39.023 39.047 39.566 0 0 2.93.266 6.242.195a84.49 84.49 0 0 0 45.289-13.516c.191-.125.383.129.254.328a66.49 66.49 0 0 1-51.785 21.18c-12.75.23-25.039-4.762-34.02-13.812S-.332 86.723 0 73.977a48.37 48.37 0 0 1 19.426-38.73 47.38 47.38 0 0 1 27.941-9.223h15.031a42.29 42.29 0 0 0 31.203-13.777.59.59 0 0 1 .68-.141c.238.102.379.344.359.598-.637 6.758-2.887 13.262-6.562 18.969-.109.203-.09.453.051.633a.58.58 0 0 0 .598.215 45.45 45.45 0 0 0 31.602-26.055.8.8 0 0 1 1.367 0 57.58 57.58 0 0 1 5.656 36.734zM46.52 61.824c-6.422 0-11.633 5.207-11.633 11.633A11.64 11.64 0 0 0 46.52 85.09c6.426 0 11.633-5.211 11.633-11.633V62.602a.84.84 0 0 0-.801-.801zm0 0"/></symbol>
+		<symbol id="i-devicon-javascript" viewBox="0 0 128 128"><path d="M2 1v125h125V1H2zm66.119 106.513c-1.845 3.749-5.367 6.212-9.448 7.401-6.271 1.44-12.269.619-16.731-2.059-2.986-1.832-5.318-4.652-6.901-7.901l9.52-5.83c.083.035.333.487.667 1.071 1.214 2.034 2.261 3.474 4.319 4.485 2.022.69 6.461 1.131 8.175-2.427 1.047-1.81.714-7.628.714-14.065C58.433 78.073 58.48 68 58.48 58h11.709c0 11 .06 21.418 0 32.152.025 6.58.596 12.446-2.07 17.361zm48.574-3.308c-4.07 13.922-26.762 14.374-35.83 5.176-1.916-2.165-3.117-3.296-4.26-5.795 4.819-2.772 4.819-2.772 9.508-5.485 2.547 3.915 4.902 6.068 9.139 6.949 5.748.702 11.531-1.273 10.234-7.378-1.333-4.986-11.77-6.199-18.873-11.531-7.211-4.843-8.901-16.611-2.975-23.335 1.975-2.487 5.343-4.343 8.877-5.235l3.688-.477c7.081-.143 11.507 1.727 14.756 5.355.904.916 1.642 1.904 3.022 4.045-3.772 2.404-3.76 2.381-9.163 5.879-1.154-2.486-3.069-4.046-5.093-4.724-3.142-.952-7.104.083-7.926 3.403-.285 1.023-.226 1.975.227 3.665 1.273 2.903 5.545 4.165 9.377 5.926 11.031 4.474 14.756 9.271 15.672 14.981.882 4.916-.213 8.105-.38 8.581z"/></symbol>
+		<symbol id="i-devicon-sqlserver" viewBox="0 0 128 128"><path d="M52.935 0v.002c-.426-.058-7.306 2.42-11.742 4.223-5.988 2.44-10.636 4.766-13.504 6.78-.926.657-2.054 1.75-2.475 2.37l-.007-.021a1.424 1.424 0 0 0-.069.148c-.022.04-.052.086-.066.12a1.812 1.812 0 0 0-.115.66l.064.06c.017.207.065.44.168.695.252.62.988 1.376 1.822 2.15 0 0 8.621 8.409 9.668 9.61 4.766 5.503 6.84 10.927 7.034 18.406.117 4.805-.796 9.03-3.063 13.932-4.03 8.796-12.535 18.504-25.652 29.276l.199-.067c-.09.072-.208.174-.295.242-1.57 1.24-3.896 3.565-5.078 5.038-1.764 2.209-3.157 4.553-3.758 6.355-1.066 3.255-.543 6.548 1.51 9.59 2.636 3.875 7.887 7.83 14.01 10.521 3.12 1.377 8.368 3.14 12.322 4.127 6.567 1.667 19.28 3.469 26.273 3.739 1.414.059 3.312.059 3.39 0 .155-.097 1.241-2.168 2.501-4.744 4.3-8.778 7.399-17.013 9.086-24.047 1.007-4.262 1.801-9.94 2.324-16.663.136-1.88.194-8.177.078-10.308-.175-3.487-.483-6.316-.968-9.086a4.17 4.17 0 0 1-.07-.573c15.578-4.628 32.768-8.821 44.187-10.568l1.764-.271-.272-.428c-1.55-2.403-2.615-3.894-3.894-5.483-3.72-4.61-8.233-8.349-13.756-11.449-7.595-4.244-17.419-7.557-29.858-10.018-2.344-.465-7.495-1.357-11.68-1.996l-.39-.699c-2.287-4.03-4.805-9.027-6.278-12.398-1.142-2.616-2.228-5.639-2.828-7.809C53.187.098 53.15.02 52.935 0Zm-.31.988h.02c.018.02.095.564.173 1.203.33 2.712.931 5.328 1.881 8.157.716 2.13.716 2.015-.117 1.763-1.976-.542-10.83-2.072-17.244-2.964-1.027-.135-1.899-.271-1.899-.291-.077-.078 4.63-2.537 6.703-3.506 2.654-1.22 9.94-4.265 10.483-4.362ZM33.947 9.67l.756.252c4.108 1.395 14.434 3.373 20.13 3.838.64.058 1.182.115 1.2.115.02.02-.52.31-1.219.639-2.75 1.376-5.775 3.061-7.867 4.36-.476.296-.912.546-1.127.648a1193.726 1193.726 0 0 1-1.932-.315l-1.824-1.787a803.536 803.536 0 0 0-7.11-6.84zm-.775.602 2.732 3.41c1.492 1.88 3.003 3.72 3.332 4.127.291.359.503.622.543.7-1.935-.337-4.006-.708-5.6-1.052-1.163-.252-3.39-.775-5.134-1.375-.18-.07-.385-.146-.58-.219v-.205c.02-1.3 1.666-3.238 4.455-5.213zm23.173 4.646c.015-.007.03-.006.04.004.077 0 .172.172.404.695.66 1.453 2.715 5.367 3.219 6.123l.064.104a1193.726 1193.726 0 0 1-10.977-1.79 2.86 2.86 0 0 1 .372-.232c2.035-1.124 4.088-2.557 5.91-4.088.445-.368.851-.715.93-.773a.097.097 0 0 1 .038-.043zm-26.138 3.275c.019-.018.329.1.736.235a50.336 50.336 0 0 0 2.81.851 142.909 142.909 0 0 0 2.557.678c1.162.29 2.132.563 2.15.563.137.136 2.094 6.394 2.753 8.797.252.91.446 1.685.427 1.685-.02.02-.234-.31-.486-.756-2.267-3.99-5.851-8.04-9.998-11.297-.542-.387-.95-.736-.95-.756zm9.513 2.618c0 .038 0 .02.02.02.098 0 .524.057 1.047.173 3.293.736 9.203 1.86 12.98 2.5.64.097 1.143.214 1.143.252 0 .04-.23.175-.522.33-.64.33-3.217 1.86-4.07 2.44-2.15 1.435-4.087 2.983-5.482 4.378a79.99 79.99 0 0 1-1.047 1.028s-.115-.33-.213-.737c-.697-2.694-2.15-6.684-3.469-9.494-.213-.445-.387-.852-.387-.89zm16.8 3.215c.115.04.31.699.697 2.152a31.732 31.732 0 0 1 .93 8.873c-.04.814-.079 1.57-.118 1.668l-.057.191-1.007-.33c-2.073-.658-5.444-1.645-8.33-2.459-1.648-.446-2.985-.852-2.985-.89 0-.117 2.403-2.52 3.43-3.43 1.956-1.725 7.264-5.832 7.44-5.775zm1.335.195c.058-.058 8.024 1.316 11.647 2.014 2.694.523 6.607 1.338 6.84 1.435.115.04-.291.269-1.59.852-5.115 2.305-8.914 4.38-12.692 6.898-.988.66-1.822 1.201-1.84 1.201-.02 0-.039-.562-.039-1.24 0-3.681-.734-7.401-2.091-10.54-.136-.31-.254-.601-.235-.62zm20.596 4.068c.058.057-.193 1.629-.426 2.559-.698 2.887-2.576 7.17-4.88 11.2-.409.716-.778 1.297-.817 1.316-.038.02-.558-.273-1.16-.622-2.247-1.318-4.806-2.555-7.596-3.718-.775-.33-1.454-.601-1.473-.641-.136-.115 6.104-4.242 9.397-6.219 2.617-1.589 6.879-3.952 6.955-3.875zm1.475.233c.174 0 3.7.968 5.54 1.511 4.554 1.356 9.784 3.275 13.194 4.825l1.414.638-.986.233c-8.33 1.918-15.463 4.129-22.342 6.918-.562.233-1.066.425-1.104.425-.039 0 .157-.444.409-.986 2.073-4.399 3.408-8.991 3.738-12.906.019-.368.079-.658.137-.658zm-35.11 8.06c.058-.058 2.751.582 4.205.989 2.21.62 6.899 2.19 6.899 2.304 0 .02-.525.466-1.145 1.008-2.538 2.112-4.98 4.341-7.906 7.17-.871.833-1.606 1.51-1.645 1.51-.04 0-.059-.115-.04-.27.445-3.255.35-7.44-.27-11.683-.06-.543-.117-1.009-.098-1.028zm56.596.059c.038.039-1.24 2.052-2.055 3.195-1.162 1.667-2.867 3.877-6.722 8.72a1289.46 1289.46 0 0 0-5.076 6.413c-.775.969-1.415 1.783-1.436 1.783-.018 0-.27-.35-.541-.775-2.17-3.256-4.767-6.103-7.848-8.66a44.534 44.534 0 0 0-1.431-1.164c-.214-.155-.39-.31-.39-.33 0-.057 3.294-1.472 5.794-2.479 4.38-1.783 10.345-3.913 14.822-5.29 2.344-.735 4.844-1.452 4.883-1.413zm1.492.387c.077-.02.543.214 1.104.543 4.709 2.693 9.32 6.162 12.963 9.726 1.027 1.008 3.564 3.641 3.525 3.66 0 0-.891.08-1.937.157-8.157.62-18.6 2.343-28.635 4.765-.68.155-1.28.291-1.319.291-.038 0 .716-.756 1.666-1.666 5.89-5.677 8.583-9.261 11.76-15.656.446-.948.834-1.762.873-1.82zm-43.148 4.418c.27.058 2.788 1.239 4.687 2.189 1.744.871 4.361 2.266 4.496 2.383.02.019-.91.503-2.054 1.066a135.033 135.033 0 0 0-10.018 5.522c-.93.562-1.704 1.027-1.723 1.027-.078 0-.058-.078.465-1.027 1.744-3.177 3.14-6.975 3.934-10.676.077-.29.155-.484.213-.484zm-2.52.464c.058.058-.6 2.442-1.008 3.74-.795 2.46-2.131 5.54-3.43 7.866-.31.542-.775 1.338-1.027 1.783l-.484.774-1.084-1.045c-1.26-1.22-2.287-1.978-3.604-2.657-.524-.27-.93-.502-.93-.54 0-.156 3.314-3.159 5.852-5.329 1.82-1.57 5.657-4.65 5.715-4.592zm15.404 6.336.95.62c2.17 1.414 4.726 3.295 6.683 4.94 1.104.91 3.235 2.83 3.662 3.294l.233.252-1.57.447c-8.874 2.46-15.733 4.649-23.735 7.594-.892.33-1.647.6-1.705.6-.116 0-.213.096 1.783-1.745 5.115-4.707 9.65-9.898 13.022-14.955zm-4.05 1.008c.04.04-2.614 3.777-4.203 5.889-1.9 2.519-5.272 6.743-7.598 9.494-.968 1.144-1.8 2.092-1.84 2.111-.058.02-.078-.27-.078-.716 0-2.344-.599-4.844-1.645-6.975-.446-.891-.523-1.104-.425-1.201.368-.33 6.004-3.545 9.568-5.463 2.404-1.28 6.163-3.177 6.22-3.139zM44.1 55.26c.057 0 .502.233 1.007.504a21.28 21.28 0 0 1 3.332 2.248c.04.038-.464.446-1.123.93-1.84 1.317-4.63 3.43-6.258 4.728-1.705 1.356-1.763 1.394-1.57 1.104 1.28-1.957 1.92-3.062 2.598-4.477a36.066 36.066 0 0 0 1.627-4.05c.155-.56.347-.987.386-.987zm6.53 5.113c.097-.018.213.157.735.932 1.104 1.647 1.957 3.857 2.17 5.639l.039.386-2.654 1.028c-4.747 1.84-9.126 3.662-12.09 5.02a217.067 217.067 0 0 0-3.237 1.548c-.95.484-1.724.853-1.724.834 0-.02.6-.465 1.336-1.008 5.794-4.204 10.813-8.816 14.572-13.427.407-.484.775-.93.813-.95zm-3.003.737v.002c.078.077-2.132 2.576-3.643 4.107-3.74 3.816-7.441 6.801-12.033 9.707-.582.368-1.104.697-1.162.735-.135.078.038-.116 2.054-2.305a52.694 52.694 0 0 0 3.352-3.97c.736-.95.871-1.086 1.937-1.84 2.85-2.056 9.418-6.513 9.495-6.436zm25.974 2.3c.274 1.057.78 6.126.918 9.481.04.795.019 1.318-.021 1.318-.154 0-3.273-1.84-5.5-3.236-1.93-1.215-5.579-3.634-6.18-4.113a358.495 358.495 0 0 1 10.783-3.45zm-12.867 4.192c.254.11.635.32 1.404.795 3.991 2.5 9.418 5.522 11.743 6.53.716.31.793.193-.854 1.318-3.526 2.402-7.924 4.765-13.31 7.148-.95.426-1.745.756-1.764.756-.04 0 .077-.486.232-1.067 1.297-4.825 2.036-9.705 2.075-13.619.01-.977.014-1.46.039-1.707l.435-.154zm-2.965 1.055c.094.476.021 4.368-.127 5.494a49.361 49.361 0 0 1-1.78 8.428c-.214.717-.41 1.319-.448 1.357-.078.097-2.732-2.5-3.604-3.508-1.51-1.744-2.692-3.486-3.564-5.191-.404-.79-.987-2.205-1.055-2.518a345.346 345.346 0 0 1 8.592-3.355c.617-.232 1.343-.473 1.986-.707zm-12.603 4.9c.047.069.163.327.271.652.62 1.685 2.013 4.165 3.215 5.754 1.318 1.744 3.043 3.605 4.477 4.825.465.387.89.756.949.814.116.117.155.097-3.004 1.299-3.66 1.395-7.652 2.79-12.225 4.262a609.84 609.84 0 0 0-3.275 1.066c-.175.058-.114-.04.389-.834 2.267-3.544 5.714-10.5 7.652-15.422.33-.853.659-1.706.717-1.9.027-.095.066-.15.103-.211l.73-.305zm-4.01 1.7c-.132.39-.973 2.151-1.842 3.853-1.88 3.663-3.933 7.267-6.684 11.646-.466.755-.91 1.453-.97 1.53-.096.136-.135.098-.446-.502-.659-1.3-1.2-2.965-1.492-4.496-.29-1.511-.232-4.146.098-5.774.15-.717.216-.987.36-1.16a225.041 225.041 0 0 1 10.976-5.098zm33.479 1.2v.813c0 4.321-.465 10.25-1.143 14.57-.116.756-.213 1.377-.232 1.397 0 0-.563-.156-1.221-.35a49.985 49.985 0 0 1-8.912-3.816c-1.88-1.027-4.61-2.714-4.533-2.791.019-.02.832-.445 1.78-.95 3.799-1.975 7.441-4.107 10.6-6.22 1.182-.794 2.963-2.071 3.35-2.42zm-48.048 5.737c.074.004.052.163-.062.851a27.507 27.507 0 0 0-.213 2.07c-.155 2.83.31 4.925 1.705 7.792.388.794.698 1.453.678 1.472-.135.117-12.962 3.875-16.992 4.979-1.201.33-2.247.62-2.325.639-.136.04-.155.021-.097-.309.446-2.848 2.617-6.568 5.64-9.707 2.014-2.093 3.622-3.314 6.373-4.883.921-.524 2.066-1.163 3.057-1.71.737-.401 1.484-.799 2.236-1.194zm30.221 5.404h.002c.02-.02.483.232 1.045.56 4.147 2.404 9.921 4.633 14.842 5.776l.445.096-.619.35c-2.576 1.433-11.045 4.96-19.705 8.195-1.26.465-2.498.93-2.73 1.027-.233.097-.448.155-.448.135 0-.02.35-.698.795-1.531 2.422-4.534 4.863-10.055 6.104-13.891.155-.368.25-.697.27-.717zm-3.08 1.006h.002c.02.02-.136.428-.33.893-1.686 4.088-3.895 8.545-6.724 13.543-.716 1.28-1.317 2.306-1.336 2.306-.02 0-.601-.35-1.3-.775-4.106-2.52-7.75-5.62-10.132-8.623l-.35-.426 1.764-.484c6.316-1.724 11.684-3.584 17.012-5.87.756-.31 1.375-.564 1.394-.564zm19.143 6.686c.02.446-.967 4.437-1.781 7.324-.678 2.422-1.26 4.32-2.327 7.672-.464 1.474-.87 2.693-.89 2.693-.02 0-.135-.018-.252-.056-5.754-1.047-10.908-2.501-15.752-4.438-1.356-.543-3.293-1.415-3.41-1.512-.038-.039 1.124-.581 2.597-1.22 8.816-3.856 17.96-8.235 21.1-10.114.368-.233.657-.35.715-.35zM28.677 96.8c.04.04-2.423 3.585-5.87 8.41-1.203 1.686-2.597 3.661-3.12 4.397a77.468 77.468 0 0 0-1.764 2.596l-.814 1.261-.871-.738c-1.027-.853-2.809-2.673-3.604-3.68-1.666-2.073-2.791-4.264-3.236-6.26-.214-.93-.214-1.394-.02-1.45a1459.308 1459.308 0 0 1 10.31-2.424 861.655 861.655 0 0 0 6.935-1.627c1.124-.271 2.035-.485 2.054-.485zm2.479.95.621.697c2.79 3.12 5.637 5.425 9.086 7.44.62.35 1.086.659 1.047.679-.135.096-11.974 4.3-17.457 6.2a462.503 462.503 0 0 1-5.639 1.956c-.019 0-.194-.117-.387-.252l-.35-.252.563-.814c1.82-2.635 4.107-5.521 9.086-11.528zm15.463 11.062c.019-.02.87.29 1.918.68 2.519.949 4.513 1.55 7.187 2.228 3.294.833 8.061 1.646 10.872 1.88.426.037.657.076.58.134-.136.077-2.985 1.028-5.077 1.686-3.333 1.047-13.504 4.05-21.797 6.433a218.736 218.736 0 0 1-2.925.834c-.194.038-.834-.138-.834-.215 0-.038.465-.638 1.027-1.297 2.79-3.333 5.561-7.054 7.867-10.58.64-.969 1.182-1.764 1.182-1.783zm-3.412.098h.002c.019.02-1.357 2.227-3.76 6.025-1.026 1.608-2.17 3.432-2.576 4.07-.388.62-.971 1.59-1.3 2.131l-.56.987-.29-.076c-.699-.195-5.601-1.919-6.9-2.442a48.226 48.226 0 0 1-4.513-2.072c-1.55-.834-3.487-2.074-3.332-2.113.038-.02 2.692-.736 5.889-1.608 8.485-2.306 13.194-3.642 16.275-4.611.562-.175 1.046-.311 1.065-.291zm24.123 5.656h.021c.077.195-3.063 8.913-4.207 11.664-.25.62-.348.776-.484.756-.33-.02-4.881-.657-7.652-1.064-4.824-.736-12.925-2.15-14.958-2.616l-.464-.097 2.886-.659c6.2-1.395 9.184-2.15 12.207-3.08a86.251 86.251 0 0 0 11.413-4.4c.6-.27 1.102-.483 1.238-.502z"/></symbol>
+		<symbol id="i-devicon-github" viewBox="0 0 128 128"><g><path fill-rule="evenodd" clip-rule="evenodd" d="M64 5.103c-33.347 0-60.388 27.035-60.388 60.388 0 26.682 17.303 49.317 41.297 57.303 3.017.56 4.125-1.31 4.125-2.905 0-1.44-.056-6.197-.082-11.243-16.8 3.653-20.345-7.125-20.345-7.125-2.747-6.98-6.705-8.836-6.705-8.836-5.48-3.748.413-3.67.413-3.67 6.063.425 9.257 6.223 9.257 6.223 5.386 9.23 14.127 6.562 17.573 5.02.542-3.903 2.107-6.568 3.834-8.076-13.413-1.525-27.514-6.704-27.514-29.843 0-6.593 2.36-11.98 6.223-16.21-.628-1.52-2.695-7.662.584-15.98 0 0 5.07-1.623 16.61 6.19C53.7 35 58.867 34.327 64 34.304c5.13.023 10.3.694 15.127 2.033 11.526-7.813 16.59-6.19 16.59-6.19 3.287 8.317 1.22 14.46.593 15.98 3.872 4.23 6.215 9.617 6.215 16.21 0 23.194-14.127 28.3-27.574 29.796 2.167 1.874 4.097 5.55 4.097 11.183 0 8.08-.07 14.583-.07 16.572 0 1.607 1.088 3.49 4.148 2.897 23.98-7.994 41.263-30.622 41.263-57.294C124.388 32.14 97.35 5.104 64 5.104z"/><path d="M26.484 91.806c-.133.3-.605.39-1.035.185-.44-.196-.685-.605-.543-.906.13-.31.603-.395 1.04-.188.44.197.69.61.537.91zm2.446 2.729c-.287.267-.85.143-1.232-.28-.396-.42-.47-.983-.177-1.254.298-.266.844-.14 1.24.28.394.426.472.984.17 1.255zM31.312 98.012c-.37.258-.976.017-1.35-.52-.37-.538-.37-1.183.01-1.44.373-.258.97-.025 1.35.507.368.545.368 1.19-.01 1.452zm3.261 3.361c-.33.365-1.036.267-1.552-.23-.527-.487-.674-1.18-.343-1.544.336-.366 1.045-.264 1.564.23.527.486.686 1.18.333 1.543zm4.5 1.951c-.147.473-.825.688-1.51.486-.683-.207-1.13-.76-.99-1.238.14-.477.823-.7 1.512-.485.683.206 1.13.756.988 1.237zm4.943.361c.017.498-.563.91-1.28.92-.723.017-1.308-.387-1.315-.877 0-.503.568-.91 1.29-.924.717-.013 1.306.387 1.306.88zm4.598-.782c.086.485-.413.984-1.126 1.117-.7.13-1.35-.172-1.44-.653-.086-.498.422-.997 1.122-1.126.714-.123 1.354.17 1.444.663zm0 0"/></g></symbol>
+	</svg>
+
 	<a class="skip-link" href="#main" data-text="nav_skip">Skip to main content</a>
 
 	<header class="site-header" id="site-header">
 		<div class="container header-inner">
 			<a href="#home" class="logo" aria-label="Victor Guilarte — Home">
-				<img src="img/VAGL_logo2Mini.jpg" alt="VAGL" width="40" height="40" loading="eager">
+				<img src="img/VAGL_logo2Mini.jpg" alt="VAGL" width="40" height="40" loading="eager" decoding="async">
 			</a>
 
 			<nav class="primary-nav" aria-label="Primary">
@@ -113,20 +152,20 @@
 
 			<div class="header-actions">
 				<div class="flags" id="flags" role="group" aria-label="Language">
-					<button class="flags-item" data-lang="en" aria-label="English">
-						<img src="img/gb.svg" alt="" width="22" height="14" loading="lazy">
+					<button class="flags-item" data-lang="en" data-aria-label="lang_english" aria-pressed="true" aria-label="English">
+						<img src="img/gb.svg" alt="" width="22" height="14" loading="lazy" decoding="async">
 					</button>
-					<button class="flags-item" data-lang="es" aria-label="Español">
-						<img src="img/es.svg" alt="" width="22" height="14" loading="lazy">
+					<button class="flags-item" data-lang="es" data-aria-label="lang_spanish" aria-pressed="false" aria-label="Spanish">
+						<img src="img/es.svg" alt="" width="22" height="14" loading="lazy" decoding="async">
 					</button>
 				</div>
 
-				<button id="theme-toggle" class="icon-btn theme-toggle" aria-label="Toggle theme" type="button">
-					<i class='bx bx-moon' aria-hidden="true"></i>
+				<button id="theme-toggle" class="icon-btn theme-toggle" type="button" data-aria-label="theme_toggle_light" aria-label="Switch to light theme">
+					<svg class="icon" aria-hidden="true" focusable="false"><use id="theme-toggle-icon" href="#i-bx-moon"></use></svg>
 				</button>
 
-				<button class="icon-btn menu-toggle" id="menu-icon" aria-label="Toggle navigation menu" aria-expanded="false" type="button">
-					<i class='bx bx-menu' aria-hidden="true"></i>
+				<button class="icon-btn menu-toggle" id="menu-icon" type="button" data-aria-label="nav_menu_toggle" aria-expanded="false" aria-controls="primary-nav-list" aria-label="Toggle navigation menu">
+					<svg class="icon" aria-hidden="true" focusable="false"><use id="menu-toggle-icon" href="#i-bx-menu"></use></svg>
 				</button>
 			</div>
 		</div>
@@ -149,7 +188,7 @@
 						<a href="#contact" class="btn btn-primary" data-text="home_cta_contact">Get in touch</a>
 						<a href="#portfolio" class="btn btn-ghost" data-text="home_cta_see_work">See my work</a>
 						<button type="button" class="btn btn-ghost" data-open-cv>
-							<i class='bx bx-download' aria-hidden="true"></i>
+							<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-download"></use></svg>
 							<span data-text="home_cta_download">Read CV</span>
 						</button>
 					</div>
@@ -175,35 +214,35 @@
 			<div class="container">
 				<ul class="tech-stack reveal" aria-label="Main technologies">
 					<li class="tech-item" title=".NET 6+">
-						<i class="devicon-dotnetcore-plain colored" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-dotnetcore" aria-hidden="true" focusable="false"><use href="#i-devicon-dotnetcore"></use></svg>
 						<span class="tech-name">.NET</span>
 					</li>
 					<li class="tech-item" title="C#">
-						<i class="devicon-csharp-plain colored" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-csharp" aria-hidden="true" focusable="false"><use href="#i-devicon-csharp"></use></svg>
 						<span class="tech-name">C#</span>
 					</li>
 					<li class="tech-item" title="ASP.NET Core">
-						<i class="devicon-dot-net-plain colored" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-dotnet" aria-hidden="true" focusable="false"><use href="#i-devicon-dotnet"></use></svg>
 						<span class="tech-name">ASP.NET</span>
 					</li>
 					<li class="tech-item" title="Angular">
-						<i class="devicon-angularjs-plain colored" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-angular" aria-hidden="true" focusable="false"><use href="#i-devicon-angular"></use></svg>
 						<span class="tech-name">Angular</span>
 					</li>
 					<li class="tech-item" title="Blazor">
-						<i class="devicon-blazor-original colored" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-blazor" aria-hidden="true" focusable="false"><use href="#i-devicon-blazor"></use></svg>
 						<span class="tech-name">Blazor</span>
 					</li>
 					<li class="tech-item" title="JavaScript">
-						<i class="devicon-javascript-plain colored" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-javascript" aria-hidden="true" focusable="false"><use href="#i-devicon-javascript"></use></svg>
 						<span class="tech-name">JavaScript</span>
 					</li>
 					<li class="tech-item" title="SQL Server">
-						<i class="devicon-microsoftsqlserver-plain colored" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-sqlserver" aria-hidden="true" focusable="false"><use href="#i-devicon-sqlserver"></use></svg>
 						<span class="tech-name">SQL Server</span>
 					</li>
 					<li class="tech-item" title="GitHub">
-						<i class="devicon-github-original" aria-hidden="true"></i>
+						<svg class="icon icon-lg icon-devicon-github" aria-hidden="true" focusable="false"><use href="#i-devicon-github"></use></svg>
 						<span class="tech-name">GitHub</span>
 					</li>
 				</ul>
@@ -215,12 +254,12 @@
 				<div class="about-text reveal">
 					<span class="eyebrow" data-text="about_eyebrow">About</span>
 					<h2 id="about-title" data-text="about_title">From enterprise systems to mobile apps, I deliver end to end.</h2>
-					<p data-text="about_p1">I'm a Full-Stack .NET developer based in Holguín, Cuba, with hands-on experience building and migrating enterprise web applications for the financial sector.</p>
-					<p data-text="about_p2">I care about clean architecture, testable APIs, and code that other people can read at 2 a.m. when something breaks.</p>
+					<p data-text="about_p1">I'm a Full-Stack .NET developer based in Holguín, Cuba, with hands-on experience building and migrating enterprise web applications for the financial sector. Since 2023 I've worked under Scrum and DevOps practices, shipping code that has to hold up in production.</p>
+					<p data-text="about_p2">I care about the unglamorous parts: clean architecture, testable APIs, and code that other people can read at 2 a.m. when something breaks. I work well independently, and I work even better inside a team that actually talks to each other.</p>
 
 					<dl class="about-stats">
 						<div>
-							<dt data-text="about_stat_years_value">1+</dt>
+							<dt data-text="about_stat_years_value">3+</dt>
 							<dd data-text="about_stat_years_label">Years professional experience</dd>
 						</div>
 						<div>
@@ -338,7 +377,7 @@
 							<li><span class="skill-name" data-text="skills_angular">Angular</span><span class="skill-level" data-text="skills_angular_level">Intermediate</span></li>
 							<li><span class="skill-name" data-text="skills_blazor">Blazor</span><span class="skill-level" data-text="skills_blazor_level">Intermediate</span></li>
 							<li><span class="skill-name" data-text="skills_javascript">JavaScript</span><span class="skill-level" data-text="skills_javascript_level">Intermediate</span></li>
-							<li><span class="skill-name" data-text="skills_htmlcss">HTML & CSS</span><span class="skill-level" data-text="skills_htmlcss_level">Advanced</span></li>
+							<li><span class="skill-name" data-text="skills_htmlcss">HTML &amp; CSS</span><span class="skill-level" data-text="skills_htmlcss_level">Advanced</span></li>
 						</ul>
 					</article>
 
@@ -352,11 +391,11 @@
 					</article>
 
 					<article class="skill-category">
-						<h3 data-text="skills_category_cloud">Cloud & Tools</h3>
+						<h3 data-text="skills_category_cloud">Cloud &amp; Tools</h3>
 						<ul class="skill-list">
 							<li><span class="skill-name" data-text="skills_azure">Azure</span><span class="skill-level" data-text="skills_azure_level">Intermediate</span></li>
 							<li><span class="skill-name" data-text="skills_aws">AWS</span><span class="skill-level" data-text="skills_aws_level">Basic</span></li>
-							<li><span class="skill-name" data-text="skills_git">Git & GitHub</span><span class="skill-level" data-text="skills_git_level">Advanced</span></li>
+							<li><span class="skill-name" data-text="skills_git">Git &amp; GitHub</span><span class="skill-level" data-text="skills_git_level">Advanced</span></li>
 							<li><span class="skill-name" data-text="skills_scrum">Scrum</span><span class="skill-level" data-text="skills_scrum_level">Advanced</span></li>
 						</ul>
 					</article>
@@ -369,15 +408,15 @@
 				<header class="section-head reveal">
 					<span class="eyebrow" data-text="portfolio_eyebrow">Work</span>
 					<h2 id="portfolio-title" data-text="portfolio_title">Selected projects</h2>
-					<p class="section-subtitle" data-text="portfolio_subtitle">Case studies of systems I've designed and built.</p>
+					<p class="section-subtitle" data-text="portfolio_subtitle">A preview of what I'm building — full case studies are on the way.</p>
 				</header>
 
 				<div class="portfolio-grid reveal">
 					<article class="project-card">
 						<div class="project-thumb" data-gradient="ember">
-							<span class="project-status" data-text="portfolio_project_1_status">Case study</span>
+							<span class="project-status" data-text="portfolio_project_1_status">Concept</span>
 							<div class="project-thumb-overlay" aria-hidden="true">
-								<i class='bx bx-code-alt'></i>
+								<svg class="icon icon-xl" aria-hidden="true" focusable="false"><use href="#i-bx-code-alt"></use></svg>
 							</div>
 						</div>
 						<div class="project-body">
@@ -387,16 +426,16 @@
 							<p class="project-features" data-text="portfolio_project_1_features">JWT auth · Rate limiting · OpenAPI · CI/CD</p>
 							<p class="project-stack" data-text="portfolio_project_1_stack">.NET 8, ASP.NET Core, SQL Server, EF Core, Azure</p>
 							<div class="project-actions">
-								<span class="project-action disabled" data-text="portfolio_action_unavailable">Coming soon</span>
+								<span class="project-action disabled" data-text="portfolio_action_unavailable">Case study coming soon</span>
 							</div>
 						</div>
 					</article>
 
 					<article class="project-card">
 						<div class="project-thumb" data-gradient="slate">
-							<span class="project-status" data-text="portfolio_project_2_status">Case study</span>
+							<span class="project-status" data-text="portfolio_project_2_status">Concept</span>
 							<div class="project-thumb-overlay" aria-hidden="true">
-								<i class='bx bx-mobile-alt'></i>
+								<svg class="icon icon-xl" aria-hidden="true" focusable="false"><use href="#i-bx-mobile-alt"></use></svg>
 							</div>
 						</div>
 						<div class="project-body">
@@ -406,16 +445,16 @@
 							<p class="project-features" data-text="portfolio_project_2_features">Barcode scanner · Offline-first · Real-time sync</p>
 							<p class="project-stack" data-text="portfolio_project_2_stack">.NET MAUI, Blazor, SQLite, REST</p>
 							<div class="project-actions">
-								<span class="project-action disabled" data-text="portfolio_action_unavailable">Coming soon</span>
+								<span class="project-action disabled" data-text="portfolio_action_unavailable">Case study coming soon</span>
 							</div>
 						</div>
 					</article>
 
 					<article class="project-card">
 						<div class="project-thumb" data-gradient="violet">
-							<span class="project-status" data-text="portfolio_project_3_status">Case study</span>
+							<span class="project-status" data-text="portfolio_project_3_status">Concept</span>
 							<div class="project-thumb-overlay" aria-hidden="true">
-								<i class='bx bx-layout'></i>
+								<svg class="icon icon-xl" aria-hidden="true" focusable="false"><use href="#i-bx-layout"></use></svg>
 							</div>
 						</div>
 						<div class="project-body">
@@ -425,7 +464,7 @@
 							<p class="project-features" data-text="portfolio_project_3_features">Kanban board · Real-time updates · Time tracking</p>
 							<p class="project-stack" data-text="portfolio_project_3_stack">Angular, .NET Core, SignalR, PostgreSQL</p>
 							<div class="project-actions">
-								<span class="project-action disabled" data-text="portfolio_action_unavailable">Coming soon</span>
+								<span class="project-action disabled" data-text="portfolio_action_unavailable">Case study coming soon</span>
 							</div>
 						</div>
 					</article>
@@ -448,7 +487,7 @@
 						<time class="cert-date" data-text="certification_1_date">2024</time>
 						<a href="https://freecodecamp.org/certification/fcc732d1744-b5b4-439f-9c80-f657af7e39a6/foundational-c-sharp-with-microsoft" target="_blank" rel="noopener noreferrer" class="cert-link">
 							<span data-text="certification_action">View certificate</span>
-							<i class='bx bx-link-external' aria-hidden="true"></i>
+							<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-link-external"></use></svg>
 						</a>
 					</article>
 
@@ -458,7 +497,7 @@
 						<time class="cert-date" data-text="certification_2_date">2024</time>
 						<a href="https://platzi.com/p/victorguilarte91/curso/3208-programacion-basica/diploma/detalle/" target="_blank" rel="noopener noreferrer" class="cert-link">
 							<span data-text="certification_action">View certificate</span>
-							<i class='bx bx-link-external' aria-hidden="true"></i>
+							<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-link-external"></use></svg>
 						</a>
 					</article>
 
@@ -468,7 +507,7 @@
 						<time class="cert-date" data-text="certification_3_date">2024</time>
 						<a href="https://platzi.com/p/victorguilarte91/curso/2883-fundamentos-net/diploma/detalle/" target="_blank" rel="noopener noreferrer" class="cert-link">
 							<span data-text="certification_action">View certificate</span>
-							<i class='bx bx-link-external' aria-hidden="true"></i>
+							<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-link-external"></use></svg>
 						</a>
 					</article>
 
@@ -478,7 +517,7 @@
 						<time class="cert-date" data-text="certification_4_date">2024</time>
 						<a href="https://platzi.com/p/victorguilarte91/curso/2198-csharp-introduccion/diploma/detalle/" target="_blank" rel="noopener noreferrer" class="cert-link">
 							<span data-text="certification_action">View certificate</span>
-							<i class='bx bx-link-external' aria-hidden="true"></i>
+							<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-link-external"></use></svg>
 						</a>
 					</article>
 
@@ -488,7 +527,7 @@
 						<time class="cert-date" data-text="certification_5_date">2024</time>
 						<a href="https://drive.google.com/file/d/1vxllvvs85t7UU7hicXu6utk2wFNKIHNn/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="cert-link">
 							<span data-text="certification_action">View certificate</span>
-							<i class='bx bx-link-external' aria-hidden="true"></i>
+							<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-link-external"></use></svg>
 						</a>
 					</article>
 
@@ -498,7 +537,7 @@
 						<time class="cert-date" data-text="certification_6_date">2025</time>
 						<a href="https://www.efset.org/cert/GFhr7J" target="_blank" rel="noopener noreferrer" class="cert-link">
 							<span data-text="certification_action">View certificate</span>
-							<i class='bx bx-link-external' aria-hidden="true"></i>
+							<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-link-external"></use></svg>
 						</a>
 					</article>
 				</div>
@@ -515,41 +554,41 @@
 
 					<dl class="contact-list">
 						<div class="contact-item">
-							<dt><i class='bx bx-map' aria-hidden="true"></i><span data-text="contact_location_label">Location</span></dt>
+							<dt><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-map"></use></svg><span data-text="contact_location_label">Location</span></dt>
 							<dd>
 								<a href="https://www.google.com/maps/place/Holgu%C3%ADn" target="_blank" rel="noopener noreferrer" data-text="contact_location_value">Holguín, Cuba</a>
 							</dd>
 						</div>
 						<div class="contact-item">
-							<dt><i class='bx bx-envelope' aria-hidden="true"></i><span data-text="contact_email_label">Email</span></dt>
+							<dt><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-envelope"></use></svg><span data-text="contact_email_label">Email</span></dt>
 							<dd class="email-row">
 								<a href="mailto:vaglegra91@gmail.com" class="email-link">vaglegra91@gmail.com</a>
-								<button type="button" class="copy-btn" id="copy-email" aria-label="Copy email">
-									<i class='bx bx-copy' aria-hidden="true"></i>
+								<button type="button" class="copy-btn" id="copy-email" data-aria-label="contact_email_action" aria-label="Copy">
+									<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-copy"></use></svg>
 									<span data-text="contact_email_action">Copy</span>
 								</button>
 							</dd>
 						</div>
 						<div class="contact-item">
-							<dt><i class='bx bx-phone' aria-hidden="true"></i><span data-text="contact_phone_label">Phone</span></dt>
+							<dt><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-phone"></use></svg><span data-text="contact_phone_label">Phone</span></dt>
 							<dd><a href="tel:+5354791418" data-text="contact_phone_value">+53 5479 1418</a></dd>
 						</div>
 					</dl>
 
 					<div class="contact-socials">
 						<span class="contact-socials-label" data-text="contact_social_label">Find me on</span>
-						<a href="https://www.linkedin.com/in/victor-guilarte" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="LinkedIn"><i class='bx bxl-linkedin' aria-hidden="true"></i></a>
-						<a href="https://github.com/vgl91" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="GitHub"><i class='bx bxl-github' aria-hidden="true"></i></a>
+						<a href="https://www.linkedin.com/in/victor-guilarte" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="LinkedIn"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-link-external"></use></svg></a>
+						<a href="https://github.com/vgl91" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="GitHub"><svg class="icon icon-devicon-github" aria-hidden="true" focusable="false"><use href="#i-devicon-github"></use></svg></a>
 					</div>
 				</div>
 
 				<form id="contactForm" class="contact-form reveal" novalidate>
 					<div class="field">
-						<input type="text" id="name" name="name" required autocomplete="name" placeholder=" ">
+						<input type="text" id="name" name="name" required autocomplete="name" placeholder=" " aria-describedby="form-feedback">
 						<label for="name" data-text="contact_form_name">Name</label>
 					</div>
 					<div class="field">
-						<input type="email" id="email" name="email" required autocomplete="email" placeholder=" ">
+						<input type="email" id="email" name="email" required autocomplete="email" placeholder=" " aria-describedby="form-feedback">
 						<label for="email" data-text="contact_form_email">Email</label>
 					</div>
 					<div class="field">
@@ -557,12 +596,12 @@
 						<label for="subject" data-text="contact_form_subject">Subject</label>
 					</div>
 					<div class="field">
-						<textarea id="message" name="message" rows="5" required placeholder=" "></textarea>
+						<textarea id="message" name="message" rows="5" required placeholder=" " aria-describedby="form-feedback"></textarea>
 						<label for="message" data-text="contact_form_message">Message</label>
 					</div>
 					<button type="submit" class="btn btn-primary btn-block" id="contact-submit">
 						<span class="btn-label" data-text="contact_form_submit">Send message</span>
-						<i class='bx bx-send' aria-hidden="true"></i>
+						<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-send"></use></svg>
 					</button>
 					<p class="form-feedback" id="form-feedback" role="status" aria-live="polite"></p>
 				</form>
@@ -580,14 +619,14 @@
 				<span id="current-year">2026</span>
 			</p>
 			<button type="button" class="cv-link" data-open-cv>
-				<i class='bx bx-file-blank' aria-hidden="true"></i>
+				<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-file-blank"></use></svg>
 				<span data-text="home_cta_download">Read CV</span>
 			</button>
 		</div>
 	</footer>
 
-	<a href="#home" class="scroll-top" aria-label="Scroll to top">
-		<i class='bx bx-up-arrow-alt' aria-hidden="true"></i>
+	<a href="#home" class="scroll-top" data-aria-label="scroll_top" aria-label="Scroll to top">
+		<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-up-arrow-alt"></use></svg>
 	</a>
 
 	<div id="cv-modal" class="cv-modal" role="dialog" aria-modal="true" aria-labelledby="cv-modal-title" hidden>
@@ -595,14 +634,14 @@
 		<div class="cv-modal-content">
 			<header class="cv-modal-header">
 				<h3 id="cv-modal-title" data-text="cv_modal_title">Curriculum Vitae</h3>
-				<button class="icon-btn cv-modal-close" id="cv-modal-close" aria-label="Close CV preview" type="button" data-close-cv>
-					<i class='bx bx-x' aria-hidden="true"></i>
+				<button class="icon-btn cv-modal-close" id="cv-modal-close" type="button" data-aria-label="cv_modal_close" data-close-cv aria-label="Close CV preview">
+					<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-x"></use></svg>
 				</button>
 			</header>
-			<iframe src="assets/pdf/cv-victor-guilarte.pdf" title="Victor Guilarte CV" class="cv-frame"></iframe>
+			<iframe id="cv-frame" class="cv-frame" title="Victor Guilarte CV" data-src="assets/pdf/cv-victor-guilarte.pdf"></iframe>
 			<footer class="cv-modal-footer">
 				<a href="assets/pdf/cv-victor-guilarte.pdf" download class="btn btn-primary">
-					<i class='bx bx-download' aria-hidden="true"></i>
+					<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-download"></use></svg>
 					<span data-text="cv_modal_download">Download PDF</span>
 				</a>
 			</footer>

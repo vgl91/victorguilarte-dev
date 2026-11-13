@@ -37,14 +37,15 @@ Currently in 🇨🇺 Holguín, Cuba. Open to interesting work and good conversa
 ## ✨ What it does
 
 - 🌐 **Bilingual EN/ES** — Full English/Spanish support with one-click toggle and persistent preference
-- 🌓 **Dark & Light themes** — Both look intentional (not just inverted). Respects `prefers-color-scheme` on first visit.
+- 🌓 **Dark & Light themes** — Both look intentional (not just inverted). Respects `prefers-color-scheme` on first visit, with no flash of the wrong theme.
 - 📱 **Responsive from 320px to 4K** — Mobile menu, fluid type, grids that don't fall apart
-- ♿ **Accessible** — Skip link, ARIA labels, keyboard nav, `prefers-reduced-motion`, focus states
-- ⚡ **Fast by default** — No build step, WebP images, lazy loading, IntersectionObserver animations
+- ♿ **Accessible** — Skip link, ARIA labels, focus-trapped dialog, `aria-current` on the active nav item, `prefers-reduced-motion`, WCAG AA contrast in both themes
+- ⚡ **Fast by default** — ~250 KB on first load, no icon fonts, no build step, WebP images, IntersectionObserver animations
 - 🔍 **SEO-ready** — Schema.org `Person` JSON-LD, Open Graph, Twitter Cards, sitemap, hreflang
-- 📄 **CV modal** — Embedded PDF preview, no Google Drive round-trip
+- 📄 **CV modal** — Embedded PDF preview, no Google Drive round-trip (the PDF is only fetched when you open it)
 - 📬 **Contact form** — EmailJS integration, no backend required
 - 🎯 **No framework, no build** — Vanilla HTML/CSS/JS, deploys anywhere
+- 🧱 **Works without JavaScript** — All content stays readable and visible if the script fails to load
 
 ---
 
@@ -56,7 +57,7 @@ Currently in 🇨🇺 Holguín, Cuba. Open to interesting work and good conversa
 | **Styles** | CSS3 | Custom properties, `color-mix()`, `clamp()`, container queries-ready |
 | **Behavior** | Vanilla JS (ES2020+) | One IIFE, no build, no jQuery, no React |
 | **Fonts** | [Inter](https://rsms.me/inter/) + [JetBrains Mono](https://www.jetbrains.com/lp/mono/) | Industry-standard pairing, both open source |
-| **Icons** | [Boxicons](https://boxicons.com/) | Clean line icons, MIT licensed |
+| **Icons** | Inline SVG sprite | 24 icons in ~25 KB of markup, zero requests, no icon font |
 | **Tech logos** | [Devicon](https://devicon.dev/) | Consistent set of tech icons |
 | **Forms** | [EmailJS](https://www.emailjs.com/) | Send emails without a backend |
 | **Hosting** | Static (any) | GitHub Pages, Netlify, Vercel, S3, anywhere |
@@ -67,7 +68,7 @@ Currently in 🇨🇺 Holguín, Cuba. Open to interesting work and good conversa
 
 ```
 personal_website_design/
-├── index.html                  # Single page, all 7 sections
+├── index.html                  # Single page, all 7 sections (59 KB, inline SVG icon sprite)
 ├── manifest.json               # PWA manifest
 ├── robots.txt                  # SEO crawler config
 ├── sitemap.xml                 # Sitemap with hreflang
@@ -75,18 +76,20 @@ personal_website_design/
 ├── README.md                   # You are here
 │
 ├── css/
-│   └── style.css               # Full design system (35 KB, no preprocessor)
+│   └── style.css               # Full design system (40 KB, no preprocessor)
 │
 ├── js/
-│   └── script.js               # IIFE, vanilla ES2020+
+│   └── script.js               # IIFE, vanilla ES2020+ (16 KB)
 │
 ├── languages/
-│   ├── en.json                 # 166 keys, English is the default
+│   ├── en.json                 # 156 keys, English is the default
 │   └── es.json                 # Same keys, Spanish translation
 │
-├── img/                        # WebP + PNG/JPG fallbacks
-│   ├── perfil.webp             # Hero portrait
-│   ├── portfolio*.webp         # Project thumbnails
+├── img/                        # Shipped images + conversion sources
+│   ├── perfil.webp             # Hero portrait (shipped)
+│   ├── perfil.png              # Source for the WebP conversion, not shipped
+│   ├── portfolio*.webp         # Project thumbnails (conversion output)
+│   ├── portfolio*.jpg          # Conversion sources, not shipped
 │   ├── gb.svg                  # UK flag
 │   ├── es.svg                  # Spain flag
 │   ├── VAGL_logo2Mini.jpg      # Logo
@@ -94,14 +97,14 @@ personal_website_design/
 │
 ├── assets/
 │   └── pdf/
-│       └── cv-victor-guilarte.pdf   # CV embedded in modal
+│       └── cv-victor-guilarte.pdf   # CV embedded in modal (loaded on demand)
 │
 ├── docs/
 │   └── screenshots/            # README images go here
 │
 └── scripts/
     ├── optimize_images.py      # JPG/PNG → WebP batch converter
-    ├── verify_keys.py          # Check data-text keys are consistent
+    ├── verify_keys.py          # Check the translation layer (HTML + JS + JSON)
     └── validate.py             # HTML structure sanity check
 ```
 
@@ -143,13 +146,18 @@ Every translatable string lives in `languages/<lang>.json` with a flat key names
 
 On page load and on language toggle, `js/script.js` walks all `[data-text]` elements and replaces `textContent` with the value from the active JSON.
 
+Attributes use `data-aria-label="key"`, and strings that the script writes at runtime
+(form feedback, the theme toggle label) are read with `t('key')`. All three are checked
+by `scripts/verify_keys.py`, which also verifies that the English fallback baked into
+the HTML still matches `en.json` — so the two can't drift apart silently.
+
 ### ➕ Adding a new language (3 steps)
 
 1. **Create the file** — `languages/fr.json` (copy `en.json` and translate)
 2. **Add the flag** — `img/fr.svg` + a `<button class="flags-item" data-lang="fr">` in the header
 3. **Update the default** (optional) — if French should be the *first* load, change `LANG_DEFAULT` in `js/script.js`
 
-Run `python scripts/verify_keys.py` to confirm your new file has all the keys the HTML expects.
+Run `python scripts/verify_keys.py` to confirm your new file has all the keys the site expects.
 
 ### 🛡️ What happens if a key is missing
 
@@ -166,13 +174,20 @@ The design system is centralized in CSS custom properties. Change one variable, 
 ```css
 /* css/style.css, top of file */
 [data-theme="dark"] {
-  --accent: #e94e4e;   /* ← change this */
-  --accent-hover: #ff6b6b;
+  --accent: #e94e4e;          /* text, icons, markers */
+  --accent-hover: #ff6b6b;    /* hover emphasis */
+  --accent-solid: #c93a3a;    /* filled buttons (needs 4.5:1 against white text) */
+  --accent-solid-hover: #b53232;
+  --accent-on-tint: #ff8a8a;  /* text on a tinted accent surface */
   /* ... */
 }
 ```
 
 The accent cascades to: links, buttons, tags, timeline markers, scroll-to-top button, focus rings, gradients.
+
+> `--accent` and `--accent-solid` are two different reds on purpose. `--accent` is
+> used for text and icons on the page background; `--accent-solid` is used for filled
+> surfaces that carry white text, and has to be dark enough to clear WCAG AA.
 
 ### Add a new project to the portfolio
 
@@ -188,9 +203,25 @@ The accent cascades to: links, buttons, tags, timeline markers, scroll-to-top bu
 3. Add a gradient variant in CSS if you want a different color:
    ```css
    .project-thumb[data-gradient="ocean"] {
-     background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+     background: var(--gradient-ocean);
    }
    ```
+   and declare `--gradient-ocean` in both theme blocks.
+
+### Add a new icon
+
+Icons live in the inline SVG sprite at the top of `index.html`:
+
+```html
+<symbol id="i-bx-star" viewBox="0 0 24 24"><path d="…"/></symbol>
+```
+
+```html
+<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bx-star"></use></svg>
+```
+
+Copy the path from [Boxicons](https://boxicons.com/) or [Devicon](https://devicon.dev/)
+and strip its `fill` attribute so the icon inherits `currentColor`.
 
 ### Add a new section
 
@@ -240,16 +271,24 @@ Point a CNAME to your host and update `<link rel="canonical">` and the `<loc>` e
 
 ## 📊 Performance
 
-What the redesign actually moved, in numbers:
+Measured in Chrome (headless, first load, no cache):
 
-| Asset | Before | After | Δ |
+| Metric | Before | After | Δ |
 |---|---|---|---|
-| `perfil.png` (hero portrait) | 175 KB | 21 KB (WebP) | **−88%** |
-| `portfolio*.jpg` (6 images) | 172 KB | 116 KB (WebP) | **−33%** |
-| `es.svg` (Spain flag) | 93 KB | 0.3 KB (simplified) | **−99.7%** |
-| HTML payload | 15.7 KB | 30.5 KB | +94% (added SEO + ARIA) |
-| CSS payload | n/a (orphan file) | 35.5 KB | clean |
-| Total page weight | ~290 KB | ~205 KB | **−29%** |
+| **Total page weight** | **~2.29 MB** | **~252 KB** | **−89%** |
+| **Transferred over the wire** | ~2.29 MB | ~143 KB (gzip) | **−94%** |
+| **Requests on first load** | 20 | 11 | −45% |
+| Icon system (Boxicons + Devicon) | 2.03 MB (CSS + TTF + WOFF2) | 25 KB (inline SVG) | **−98.8%** |
+| `perfil.png` (hero portrait) | 175 KB | 21 KB (WebP) | −88% |
+| `portfolio*.jpg` (6 images) | 172 KB | 116 KB (WebP) | −33% |
+| `es.svg` (Spain flag) | 93 KB | 0.3 KB (simplified) | −99.7% |
+| HTML payload | 15.7 KB | 59 KB (inline sprite + SEO + ARIA) | +276% |
+| CSS payload | n/a (orphan file) | 40 KB | clean |
+| JS payload | — | 16 KB | no dependencies |
+
+The biggest win was dropping the two icon-font CDNs: `devicon.min.css` declares its
+sources in `eot → svg → ttf → woff → woff2` order, so Chrome downloaded the **1.7 MB
+TTF** to draw 8 technology logos. Everything is now inline SVG in the document.
 
 Lighthouse targets (mobile, throttled):
 
@@ -268,14 +307,18 @@ Accessibility isn't an afterthought here — it's in the markup.
 
 - ✅ Skip-to-content link
 - ✅ Semantic HTML5 (`<header>`, `<main>`, `<nav>`, `<section>`, `<article>`, `<footer>`)
-- ✅ `aria-label` on all icon-only buttons
-- ✅ `aria-current` and active state on nav
-- ✅ `aria-live="polite"` region for form feedback
+- ✅ `aria-label` on all icon-only buttons (translated)
+- ✅ `aria-current="location"` and active state on the nav item of the current section
+- ✅ `aria-pressed` on the language and theme toggles
+- ✅ `aria-live="polite"` region for form feedback, `aria-invalid` on invalid fields
 - ✅ `prefers-reduced-motion` honored globally
 - ✅ Focus rings on all interactive elements (`:focus-visible`)
-- ✅ Form validation with descriptive error messages
-- ✅ Color contrast: AAA on body text, AA on UI
-- ✅ Keyboard-navigable modal (Escape to close, focus trap)
+- ✅ Form validation with descriptive error messages (translated)
+- ✅ Color contrast: **WCAG AA (4.5:1) verified on every text/background pair, in both themes**
+- ✅ Keyboard-navigable modal (Escape to close, focus trapped inside, focus restored on close)
+- ✅ The off-canvas mobile menu is `inert` and `aria-hidden` while closed, so keyboard users never tab into an invisible panel
+- ✅ Touch targets ≥ 24 px (WCAG 2.5.8); standalone controls are ≥ 32 px
+- ✅ The page stays fully readable if JavaScript fails to load
 
 **SEO**
 
@@ -284,7 +327,7 @@ Accessibility isn't an afterthought here — it's in the markup.
 - ✅ `sitemap.xml` with hreflang
 - ✅ `robots.txt`
 - ✅ `manifest.json` (PWA installable)
-- ✅ `theme-color` adaptive to light/dark
+- ✅ `theme-color` updated live with the theme
 - ✅ Descriptive `<title>`, `<meta description>`, OG image
 - ✅ Canonical URL
 
@@ -298,7 +341,7 @@ Things I'd like to add when there's time:
 - [ ] 🌍 **Localized routing** (`/en/`, `/es/`) instead of client-side language swap
 - [ ] ✨ **View Transitions API** for buttery section changes
 - [ ] 📊 **Plausible analytics** (privacy-friendly, no cookies)
-- [ ] 💼 **Real portfolio projects** to replace the 3 case studies (currently fictional)
+- [ ] 💼 **Real portfolio projects** to replace the 3 concept cards (currently labelled *Concept* on purpose)
 - [ ] 🧪 **Unit tests** for the language switcher and form validation
 - [ ] 🖼️ **OG image generator** — dynamic preview card per section
 - [ ] 🎨 **Theme picker** — let visitors pick from 3-4 accent colors
@@ -335,8 +378,8 @@ Built with coffee ☕, [VS Code](https://code.visualstudio.com/), and these amaz
 
 - [Inter](https://rsms.me/inter/) — UI font
 - [JetBrains Mono](https://www.jetbrains.com/lp/mono/) — monospace font
-- [Boxicons](https://boxicons.com/) — icon set
-- [Devicon](https://devicon.dev/) — tech logos
+- [Boxicons](https://boxicons.com/) — icon set (SVG paths inlined in `index.html`)
+- [Devicon](https://devicon.dev/) — tech logos (SVG paths inlined in `index.html`)
 - [EmailJS](https://www.emailjs.com/) — contact form backend
 - [Pillow](https://python-pillow.org/) — WebP conversion in the optimization script
 - [Schema.org](https://schema.org/) — structured data vocabulary
