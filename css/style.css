@@ -1128,10 +1128,25 @@ section {
 	background: var(--gradient-violet);
 }
 
+.project-thumb-image {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top left;
+	transition: transform var(--t-base) var(--ease);
+}
+
+.project-card:hover .project-thumb-image {
+	transform: scale(1.03);
+}
+
 .project-status {
 	position: absolute;
 	top: var(--space-3);
 	left: var(--space-3);
+	z-index: 1;
 	padding: 4px var(--space-3);
 	font-family: var(--font-mono);
 	font-size: var(--fs-xs);
